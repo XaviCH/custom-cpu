@@ -38,4 +38,4 @@
 // MEM 
 
 `define MEM_LATENCY 5
-`define MEM_SIZE 1024*1024
+`define MEM_SIZE 1024*1024 // 2^10 bytes
