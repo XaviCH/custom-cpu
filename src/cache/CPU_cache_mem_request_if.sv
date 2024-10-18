@@ -1,6 +1,6 @@
 `include "CPU_define.vh"
 
-interface CPU_cache_request_if ();
+interface CPU_cache_mem_request_if ();
 
     typedef struct packed {
         logic [25:0] _;
