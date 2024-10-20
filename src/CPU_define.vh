@@ -5,6 +5,9 @@
 
 `define REG_WIDTH 32
 `define INSTR_WIDTH 32
+`define BYTE_WIDTH 8
+`define HALF_WIDTH 16
+`define WORD_WIDTH 32
 `define LINE_WIDTH 128
 
 `define BOOT_ADDR 'h1000 

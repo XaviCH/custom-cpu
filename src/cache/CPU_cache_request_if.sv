@@ -2,6 +2,10 @@
 
 interface CPU_cache_request_if ();
 
+    typedef enum {
+        WORD, BYTE
+    } op_t;
+
     typedef struct packed {
         logic [25:0] _;
         logic [1:0] line;
@@ -9,16 +13,17 @@ interface CPU_cache_request_if ();
         logic [1:0] _byte;
     } addr_t;
 
-    wire read, write;
-    wire [31:0] data;
-    wire addr_t addr;
+    logic read, write;
+    op_t op;
+    logic [31:0] data;
+    addr_t addr;
 
     modport master (
-        output read, write, data, addr
+        output read, write, op, data, addr
     );
 
     modport slave (
-        input read, write, data, addr
+        input read, write, op, data, addr
     );
 
 endinterface

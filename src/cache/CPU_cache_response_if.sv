@@ -2,15 +2,15 @@
 
 interface CPU_cache_response_if ();
 
-    wire valid;
-    wire [31:0] data;
+    logic hit;
+    logic [31:0] data;
 
     modport master (
-        output valid, data
+        output hit, data
     );
 
     modport slave (
-        input valid, data
+        input hit, data
     );
 
 endinterface
