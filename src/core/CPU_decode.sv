@@ -17,6 +17,7 @@ assign bank_reg_request_if.read_reg_a = decode_if.instr[19:15];
 assign bank_reg_request_if.read_reg_b = decode_if.instr[14:10];
 assign execute_if.ra_data = bank_reg_response_if.read_data_a;
 assign execute_if.rb_data = bank_reg_response_if.read_data_b;
+assign execute_if.reg_dest = decode_if.instr[24:20];
 
 always @(posedge clock) begin
     if (reset) begin 

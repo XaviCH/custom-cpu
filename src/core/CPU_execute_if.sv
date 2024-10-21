@@ -26,6 +26,11 @@ interface CPU_execute_if ();
     logic [REG_WIDTH] rb_data;
     logic [REG_WIDTH] imm_data;
 
+    //TYPE_M y TYPE_R
+    logic [$clog2(NUM_REGS)] reg_dest;
+
+    logic [REG_WIDTH] idle_reg;
+    logic mul_wait;
 
     modport master (
         output wb,

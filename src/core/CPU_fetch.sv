@@ -9,7 +9,7 @@ module CPU_fetch;
     
     // inputs
     CPU_fetch_if.slave fetch_if,
-
+    CPU_execute_if.slave execute_if,
     // outputs
     CPU_decode_if.master decode_if,
     output wire next_PC
@@ -26,7 +26,11 @@ always @(posedge clock) begin
     if (reset) begin
         fetch_if.PC <= BOOT_ADDR;
     end else begin
-        decode_if.next_PC <= next_PC;
+        if ( execute_if.mul_wait ) begin
+            decode_if.next_PC <= fetch_if.PC;
+        end else begin
+            decode_if.next_PC <= next_PC;
+        end
     end
 end
 

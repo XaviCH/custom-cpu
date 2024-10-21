@@ -44,7 +44,8 @@ CPU_fetch fetch
     .icache_request_if (icache_request_if),
     .icache_response_if (icache_response_if),
     .fetch_if (fetch_if),
-    .decode_if (decode_if)
+    .execute_if (execute_if),
+    .decode_if (decode_if),
 );
 
 CPU_decode decode
