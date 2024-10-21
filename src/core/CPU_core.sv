@@ -36,6 +36,14 @@ CPU_bank_reg bank_reg(
 
 );
 
+CPU_FWUnit_if forward_unit_input_if();
+CPU_FWUnit_if forward_unit_output_if();
+
+CPU_FWUnit forward_unit(
+    .FWUnit_input_if (forward_unit_input_if),
+    .FWUnit_output_if (forward_unit_output_if)
+);
+
 // Pipeline declaration
 CPU_fetch fetch
 (
@@ -61,7 +69,9 @@ CPU_execute execute
 (
     .clock (clock),
     .reset (reset),
-    .execute_if (execute_if)
+    .execute_if (execute_if),
+    .FWUnit_input_if (forward_unit_input_if),
+    .FWUnit_output_if (forward_unit_output_if),
     .commit_if (commit_if),
 );
 
@@ -70,6 +80,7 @@ CPU_commit commit
     .clock (clock),
     .reset (reset),
     .commit_if (commit_if),
+    .FWUnit_input_if (forward_unit_input_if),
     .writeback_if (writeback_if)
 );
 
@@ -78,6 +89,7 @@ CPU_writeback writeback
     .clock (clock),
     .reset (reset),
     .commit_if (commit_if),
+    .FWUnit_input_if (forward_unit_input_if),
     .reg_write (reg_write),
     .write_register (write_register),
     .write_data (write_data)

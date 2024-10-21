@@ -6,11 +6,16 @@ module CPU_execute;
     // input
     CPU_execute_if.slave execute_if,
     
+    CPU_FWUnit_input_if.master FWUnit_input_if,
+    CPU_FWUnit_output_if.slave FWUnit_output_if,
+    
     // output
     CPU_commit_if.master commit_if,
 );
 
 assign commit_if.reg_dest <= execute_if.reg_dest;
+assign FWUnit_input_if.ra_execute <= execute_if.ra_data;
+assign FWUnit_input_if.rb_execute <= execute_if.rb_data;
 
 always @(posedge clock) begin
     if (reset) begin 
