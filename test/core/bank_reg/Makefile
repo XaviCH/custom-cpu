@@ -1,4 +1,4 @@
-PROJ_PATH = ../..
+PROJ_PATH = ../../..
 BANK_PATH = $(PROJ_PATH)/src/bank_reg
 
 FLAGS = --binary -j 0 -Wall

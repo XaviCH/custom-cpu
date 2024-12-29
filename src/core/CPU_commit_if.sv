@@ -15,29 +15,28 @@ interface CPU_commit_if ();
 
     commit_t commit;
     writeback_t writeback;
-    logic [VIRTUAL_ADDR_WIDTH] add_result;
-    logic [REG_WIDTH] alu_result;
+    logic [`REG_WIDTH-1:0] alu_result;
     logic zero;
-    logic [REG_WIDTH] rb;
+    logic [`REG_WIDTH-1:0] rb_data;
     //TYPE_M y TYPE_R
-    logic [$clog2(NUM_REGS)] reg_dest;
+    logic [$clog2(`NUM_REGS)-1:0] reg_dest;
 
     modport master (
-        output wb;
-        output m;
-        output add_result;
-        output alu_result;
-        output zero;
-        output rb;
+        output commit,
+        output writeback,
+        output alu_result,
+        output zero,
+        output rb_data,
+        output reg_dest
     );
 
     modport slave (
-        input wb;
-        input m;
-        input add_result;
-        input alu_result;
-        input zero;
-        input rb;
+        input commit,
+        input writeback,
+        input alu_result,
+        input zero,
+        input rb_data,
+        output reg_dest
     );
 
 endinterface

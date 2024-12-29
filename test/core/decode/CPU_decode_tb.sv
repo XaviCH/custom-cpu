@@ -39,7 +39,7 @@ module CPU_decode_tb ();
 
 
         $display("instr value: %h, reg_b value: %h", decode_if.master.instr.r_instr.opcode, execute_if.reg_b);
-        $display("reg a value: %h, reg b value: %h", execute_if.ra_data, execute_if.slave.rb_data);
+        $display("reg a value: %h, reg b value: %h", execute_if.ra_data, execute_if.rb_data);
         $display("instr src1 value: %b, src2 value: %b", decode_if.master.instr.r_instr.src1, decode_if.master.instr.r_instr.src2);
         $display("alu op: %b", execute_if.execute.alu_op);
         $finish();

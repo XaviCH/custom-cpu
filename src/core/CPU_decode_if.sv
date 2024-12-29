@@ -18,26 +18,26 @@ interface CPU_decode_if ();
     } opcode_t;
 
     typedef struct packed {
-        logic [9:0] _;
-        logic [4:0] src2;
-        logic [4:0] src1;
-        logic [4:0] dst;
         opcode_t opcode;
+        logic [4:0] dst;
+        logic [4:0] src1;
+        logic [4:0] src2;
+        logic [9:0] _;
     } r_instr_t;
 
     typedef struct packed {
-        logic [14:0] offset;
-        logic [4:0] src1;
-        logic [4:0] dst;
         opcode_t opcode;
+        logic [4:0] dst;
+        logic [4:0] src1;
+        logic [14:0] offset;
     } m_instr_t;
 
     typedef struct packed {
-        logic [9:0] offset_low;
-        logic [4:0] src2_offset_m;
-        logic [4:0] src1;
-        logic [4:0] offset_high;
         opcode_t opcode;
+        logic [4:0] offset_high;
+        logic [4:0] src1;
+        logic [4:0] src2_offset_m;
+        logic [9:0] offset_low;
     } b_instr_t;
 
     typedef union packed {
