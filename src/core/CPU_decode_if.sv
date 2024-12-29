@@ -2,7 +2,7 @@
 
 interface CPU_decode_if ();
 
-    typedef enum logic[7] {
+    typedef enum logic[6:0] {
         ADD = 'h0,
         SUB = 'h1,
         MUL = 'h2,
@@ -18,25 +18,25 @@ interface CPU_decode_if ();
     } opcode_t;
 
     typedef struct packed {
-        logic [10] _;
-        logic [5] src2;
-        logic [5] src1;
-        logic [5] dst;
+        logic [9:0] _;
+        logic [4:0] src2;
+        logic [4:0] src1;
+        logic [4:0] dst;
         opcode_t opcode;
     } r_instr_t;
 
     typedef struct packed {
-        logic [15] offset;
-        logic [5] src1;
-        logic [5] dst;
+        logic [14:0] offset;
+        logic [4:0] src1;
+        logic [4:0] dst;
         opcode_t opcode;
     } m_instr_t;
 
     typedef struct packed {
-        logic [10] offset_low;
-        logic [5] src2_offset_m;
-        logic [5] src1;
-        logic [5] offset_high;
+        logic [9:0] offset_low;
+        logic [4:0] src2_offset_m;
+        logic [4:0] src1;
+        logic [4:0] offset_high;
         opcode_t opcode;
     } b_instr_t;
 
@@ -46,20 +46,20 @@ interface CPU_decode_if ();
         b_instr_t b_instr;
     } instr_t;
 
-    logic [VIRTUAL_ADDR_WIDTH] next_PC;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
     logic valid_instr;
     instr_t instr;
     
     modport master (
         output next_PC,
         output valid_instr,
-        output instr,
+        output instr
     );
 
     modport slave (
         input next_PC,
         input valid_instr,
-        input instr,
+        input instr
     );
 
 endinterface
