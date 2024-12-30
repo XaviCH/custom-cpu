@@ -14,6 +14,10 @@ module CPU_decode
 
 assign bank_reg_if.read_reg_a = decode_if.instr.r_instr.src1;
 assign bank_reg_if.read_reg_b = decode_if.instr.r_instr.src2;
+
+assign execute_if.ra_id = decode_if.instr.r_instr.src1;
+assign execute_if.rb_id = decode_if.instr.r_instr.src2;
+
 assign execute_if.next_PC = decode_if.next_PC;
 
 assign execute_if.ra_data = bank_reg_if.read_data_a;
@@ -28,7 +32,7 @@ always @(posedge clock, posedge reset) begin
         execute_if.writeback.reg_write <= '0;
     end else begin
         if (decode_if.instr[31:29] == `R_TYPE_OP) begin
-            execute_if.reg_b <= '1;
+            execute_if.use_reg_b <= '1;
             execute_if.commit <= '0;
             execute_if.writeback.mem_to_reg <= '0;
             execute_if.writeback.reg_write <= '1;
@@ -39,7 +43,7 @@ always @(posedge clock, posedge reset) begin
                 execute_if.execute.alu_op <= decode_if.instr[26:25];
             end
         end else if (decode_if.instr[31:29]==`M_TYPE_OP) begin
-            execute_if.reg_b <= '0;
+            execute_if.use_reg_b <= '0;
             execute_if.execute.alu_op <= `ALU_ADD_OP;
             execute_if.commit <= '1;
             execute_if.writeback.mem_to_reg <= '1;
