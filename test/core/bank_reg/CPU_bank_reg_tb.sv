@@ -25,6 +25,8 @@ module CPU_bank_reg_tb ();
         bank_reg_if.write_data=2;
         #20
 
+        $display("reg written: %h", bank_reg.reg_file[2]);
+
         bank_reg_if.read_reg_a=2;
         bank_reg_if.read_reg_b=1;
         #20

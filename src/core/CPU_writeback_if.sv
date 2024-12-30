@@ -7,22 +7,22 @@ interface CPU_writeback_if ();
         logic reg_write;
     } writeback_t;
 
-    writeback_t write_back;
+    writeback_t writeback;
 
-    logic [$clog2(NUM_REGS)] reg_dest;
-    logic [REG_WIDTH] mem_data;
-    logic [REG_WIDTH] alu_data;
+    logic [$clog2(`NUM_REGS)-1:0] reg_dest;
+    logic [`REG_WIDTH-1:0] mem_data;
+    logic [`REG_WIDTH-1:0] alu_data;
 
     modport master (
-        output write_reg_file,
-        output alu_mem,
+        output writeback,
+        output reg_dest,
         output mem_data,
         output alu_data
     );
 
     modport slave (
-        input write_reg_file,
-        output alu_mem,
+        input writeback,
+        output reg_dest,
         input mem_data,
         input alu_data
     );
