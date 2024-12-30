@@ -4,7 +4,7 @@ module CPU_writeback
     input wire reset,
     // input
     CPU_writeback_if.slave writeback_if,
-    CPU_bank_reg_if.master bank_reg_if
+    CPU_bank_reg_if.master_write bank_reg_if
     // CPU_FWUnit_input_if.master FWUnit_input_if,
 );
 // assign FWUnit_input_if.write_back_wb <= writeback_if.writeback;

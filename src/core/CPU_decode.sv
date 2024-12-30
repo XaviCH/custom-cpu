@@ -5,7 +5,7 @@ module CPU_decode
     input wire clock,
     input wire reset,
     
-    CPU_bank_reg_if.master bank_reg_if,
+    CPU_bank_reg_if.master_read bank_reg_if,
     // input
     CPU_decode_if.slave decode_if,
     // ouput

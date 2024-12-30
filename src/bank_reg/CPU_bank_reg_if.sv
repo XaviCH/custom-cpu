@@ -11,14 +11,17 @@ interface CPU_bank_reg_if ();
     wire [`REG_WIDTH-1:0] read_data_a;
     wire [`REG_WIDTH-1:0] read_data_b;
 
-    modport master (
+    modport master_read (
         output read_reg_a,
         output read_reg_b,
-        output write_reg,
-        output write_data,
-        output write_enable,
         input read_data_a,
         input read_data_b
+    );
+
+    modport master_write (
+        output write_reg,
+        output write_data,
+        output write_enable
     );
 
     modport slave (        
