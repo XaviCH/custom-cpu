@@ -16,10 +16,13 @@ interface CPU_commit_if ();
     commit_t commit;
     writeback_t writeback;
     logic [`REG_WIDTH-1:0] alu_result;
-    logic zero;
     logic [`REG_WIDTH-1:0] rb_data;
     //TYPE_M y TYPE_R
     logic [$clog2(`NUM_REGS)-1:0] reg_dest;
+
+    //BRANCH
+    logic [`REG_WIDTH-1:0] branch_result;
+    logic zero;
 
     modport master (
         output commit,
@@ -27,7 +30,8 @@ interface CPU_commit_if ();
         output alu_result,
         output zero,
         output rb_data,
-        output reg_dest
+        output reg_dest,
+        output branch_result
     );
 
     modport slave (
@@ -36,7 +40,8 @@ interface CPU_commit_if ();
         input alu_result,
         input zero,
         input rb_data,
-        output reg_dest
+        input reg_dest,
+        input branch_result
     );
 
 endinterface

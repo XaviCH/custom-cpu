@@ -4,7 +4,7 @@ interface CPU_execute_if ();
 
     typedef struct packed {
         logic [$clog2(`NUM_ALU_OPS)-1:0] alu_op;
-        logic reg_b;
+        logic use_reg_b;
     } execute_t;
 
     typedef struct packed {
@@ -31,7 +31,6 @@ interface CPU_execute_if ();
     logic [$clog2(`NUM_REGS)-1:0] ra_id;
     logic [$clog2(`NUM_REGS)-1:0] rb_id;
     logic [$clog2(`NUM_REGS)-1:0] reg_dest;
-    logic use_reg_b;
 
     modport master (
         output writeback,
@@ -42,7 +41,6 @@ interface CPU_execute_if ();
         output rb_data,
         output offset_data,
         output reg_dest,
-        output use_reg_b,
         output ra_id,
         output rb_id
     );
@@ -56,7 +54,6 @@ interface CPU_execute_if ();
         input rb_data,
         input offset_data,
         input reg_dest,
-        input use_reg_b,
         input ra_id,
         input rb_id
     );

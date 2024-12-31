@@ -36,11 +36,11 @@
 `define ISA_ADD_OP 'h0
 `define ISA_SUB_OP 'h1
 `define ISA_MUL_OP 'h2
-`define ISA_LDB_OP
-`define ISA_LDW_OP
-`define ISA_STB_OP
-`define ISA_STW_OP
-`define ISA_BEQ_OP
+`define ISA_LDB_OP 'h10
+`define ISA_LDW_OP 'h11
+`define ISA_STB_OP 'h12
+`define ISA_STW_OP 'h13
+`define ISA_BEQ_OP 'h30
 `define ISA_JUMP_OP
 
 // MEM 
