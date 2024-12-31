@@ -12,13 +12,19 @@ module CPU_commit
     CPU_writeback_if.master writeback_if
 );
 
-assign writeback_if.writeback = commit_if.writeback;
-assign writeback_if.alu_data = commit_if.alu_result;
-assign writeback_if.reg_dest = commit_if.reg_dest;
-
 assign FWUnit_if.rd_commit = commit_if.reg_dest;
 assign FWUnit_if.writeback_commit = commit_if.writeback.reg_write;
+assign FWUnit_if.commit_value = commit_if.alu_result;
 
-//ALL MEMORY LOGIC
-
+always @(posedge clock) begin
+    if (reset) begin
+        //TODO: reset 
+    end else begin
+        //PASS VALUES
+        writeback_if.writeback <= commit_if.writeback;
+        writeback_if.alu_data <= commit_if.alu_result;
+        writeback_if.reg_dest <= commit_if.reg_dest;
+        //ALL MEMORY LOGIC
+    end
+end
 endmodule

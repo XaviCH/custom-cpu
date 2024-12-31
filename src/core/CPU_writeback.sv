@@ -16,5 +16,6 @@ assign bank_reg_if.write_reg = writeback_if.reg_dest;
 
 assign FWUnit_if.rd_wb = writeback_if.reg_dest;
 assign FWUnit_if.writeback_wb = writeback_if.writeback.reg_write;
+assign FWUnit_if.wb_value = writeback_if.alu_data;
 
 endmodule

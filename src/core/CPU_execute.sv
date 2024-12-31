@@ -14,21 +14,22 @@ module CPU_execute
 wire [`REG_WIDTH-1:0] ra_value;
 wire [`REG_WIDTH-1:0] rb_value;
 
-assign commit_if.reg_dest = execute_if.reg_dest;
-assign commit_if.writeback = execute_if.writeback;
-assign commit_if.commit = execute_if.commit;
 assign FWUnit_if.ra_id = execute_if.ra_id;
 assign FWUnit_if.rb_id = execute_if.rb_id;
 
 assign ra_value = (FWUnit_if.ra_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
 assign rb_value = (execute_if.execute.use_reg_b ? (FWUnit_if.rb_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
 
-assign commit_if.rb_data = rb_value;
-
 always @(posedge clock) begin
     if (reset) begin
         //TODO: reset 
     end else begin
+        //PASS VALUES
+        commit_if.reg_dest <= execute_if.reg_dest;
+        commit_if.writeback <= execute_if.writeback;
+        commit_if.commit <= execute_if.commit;
+
+        commit_if.rb_data <= rb_value;
         //BRANCH
         commit_if.branch_result <= execute_if.next_PC + (execute_if.offset_data<<2);
         //ALU

@@ -28,12 +28,14 @@ interface CPU_FWUnit_if ();
 
     modport master_commit(
         output rd_commit,
-        output writeback_commit
+        output writeback_commit,
+        output commit_value
     );
 
     modport master_writeback(
         output rd_wb,
-        output writeback_wb
+        output writeback_wb,
+        output wb_value
     );
 
     modport slave (

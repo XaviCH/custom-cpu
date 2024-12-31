@@ -68,29 +68,42 @@ module CPU_decode_alu_commit_wb_tb ();
         bank_reg.reg_file[1]='h4;
         bank_reg.reg_file[2]='h5;
         // load program
-        decode_if.master.next_PC='h1;
-        decode_if.master.instr={7'h0, 5'h0, 5'h2, 5'h1, 10'h00};
+        // decode_if.master.next_PC='h1;
+        // decode_if.master.instr.r_instr.opcode=opcode_t'ADD;
+        // decode_if.master.instr.r_instr.dst=2;
+        // decode_if.master.instr.r_instr.src1=1;
+        // decode_if.master.instr.r_instr.src2=2;
+
+        decode_if.instr={7'h0, 5'h1, 5'h2, 5'h1, 10'h00};
 
         #20
 
         $display("ra bypass value: %h", FWUnit_if.master_execute.ra_bypass);
+        $display("rb bypass value: %h", FWUnit_if.master_execute.rb_bypass);
+
         $display("ra execute id: %h", execute_if.ra_id);
-        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute_if.rb_data, commit_if.alu_result);
-
-        #20
-        $display("ra bypass value: %h", FWUnit_if.master_execute.ra_bypass);
+        $display("rb execute id: %h", execute_if.rb_id);
+        $display("rd execute id: %h", execute_if.reg_dest);
 
         $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute_if.rb_data, commit_if.alu_result);
 
         #20
         $display("ra bypass value: %h", FWUnit_if.master_execute.ra_bypass);
 
-        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute_if.rb_data, commit_if.alu_result);
+        $display("use rb: %h", execute_if.execute.use_reg_b);
+        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+
+        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute.rb_value, commit_if.alu_result);
 
         #20
         $display("ra bypass value: %h", FWUnit_if.master_execute.ra_bypass);
 
-        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute_if.rb_data, commit_if.alu_result);
+        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute.rb_value, commit_if.alu_result);
+
+        #20
+        $display("ra bypass value: %h", FWUnit_if.master_execute.ra_bypass);
+
+        $display("reg a value: %h, reg b value: %h, result_value: %h", execute_if.ra_data, execute.rb_value, commit_if.alu_result);
 
         $finish();
     end
