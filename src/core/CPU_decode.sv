@@ -36,7 +36,6 @@ always @(posedge clock, posedge reset) begin
             execute_if.commit <= '0;
             execute_if.writeback.mem_to_reg <= '0;
             execute_if.writeback.reg_write <= '1;
-            execute_if.writeback.mem_to_reg <= '0;
             if (decode_if.instr.r_instr.opcode== `ISA_MUL_OP) begin
                 //TO DO: MUL
             end else begin 
@@ -50,12 +49,14 @@ always @(posedge clock, posedge reset) begin
             execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             //LOAD
             if (decode_if.instr.b_instr.opcode== `ISA_LDB_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
-                execute_if.commit.mem_read <= '0;
+                execute_if.commit.mem_read <= '1;
+                execute_if.commit.mem_write <= '0;
                 execute_if.writeback.mem_to_reg <= '1;
                 execute_if.writeback.reg_write <= '1;
             //STORE
             end else if (decode_if.instr.b_instr.opcode== `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_STW_OP) begin 
-                execute_if.commit.mem_write <= '0;
+                execute_if.commit.mem_write <= '1;
+                execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
             end
         //BTYPE

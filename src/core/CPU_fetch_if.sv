@@ -1,5 +1,6 @@
 `include "CPU_define.vh"
 
+//DEPRECATED??
 interface CPU_fetch_if ();
 
     logic [VIRTUAL_ADDR_WIDTH] PC;
