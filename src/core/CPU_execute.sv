@@ -8,6 +8,7 @@ module CPU_execute
     
     // output
     CPU_FWUnit_if.master_execute FWUnit_if,
+    CPU_HDUnit_if.master_execute HDUnit_if,
     CPU_commit_if.master commit_if
 );
 
@@ -16,6 +17,9 @@ wire [`REG_WIDTH-1:0] rb_value;
 
 assign FWUnit_if.ra_id = execute_if.ra_id;
 assign FWUnit_if.rb_id = execute_if.rb_id;
+
+assign HDUnit_if.execute_mem_read=execute_if.commit.mem_read;
+assign HDUnit_if.execute_rd=execute_if.reg_dest;
 
 assign ra_value = (FWUnit_if.ra_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
 assign rb_value = (execute_if.execute.use_reg_b ? (FWUnit_if.rb_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
@@ -31,7 +35,7 @@ always @(posedge clock) begin
 
         commit_if.rb_data <= rb_value;
         //BRANCH
-        commit_if.branch_result <= execute_if.next_PC + (execute_if.offset_data<<2);
+        commit_if.branch_result <= (execute_if.commit.jump ? ra_value : execute_if.next_PC) + (execute_if.offset_data<<2);
         //ALU
         if (execute_if.execute.alu_op == `ISA_ADD_OP) begin
             commit_if.alu_result <= ra_value + rb_value;

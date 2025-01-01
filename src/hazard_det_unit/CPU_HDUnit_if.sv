@@ -3,10 +3,10 @@
 interface CPU_HDUnit_if ();
 
     wire execute_mem_read;
-    wire [`REG_WIDTH-1:0] execute_rd;
-    wire [`REG_WIDTH-1:0] decode_ra;
+    wire [$clog2(`NUM_REGS)-1:0] execute_rd;
+    wire [$clog2(`NUM_REGS)-1:0] decode_ra;
     wire ra_use;
-    wire [`REG_WIDTH-1:0] decode_rb;
+    wire [$clog2(`NUM_REGS)-1:0] decode_rb;
     wire rb_use;
 
     wire stall;

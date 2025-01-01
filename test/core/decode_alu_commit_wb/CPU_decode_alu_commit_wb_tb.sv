@@ -7,6 +7,7 @@ module CPU_decode_alu_commit_wb_tb ();
 
     CPU_bank_reg_if bank_reg_if();
     CPU_FWUnit_if FWUnit_if();
+    CPU_HDUnit_if HDUnit_if();
     CPU_decode_if decode_if();
     CPU_execute_if execute_if();
     CPU_commit_if commit_if();
@@ -25,10 +26,18 @@ module CPU_decode_alu_commit_wb_tb ();
         .FWUnit_if(FWUnit_if)
     );
 
+    CPU_HDUnit HDUnit
+    (
+        .clock(clock),
+        .reset(reset),
+        .HDUnit_if(HDUnit_if)
+    );
+
     CPU_decode decode(
         .clock (clock),
         .reset (reset),
         .bank_reg_if(bank_reg_if),
+        .HDUnit_if(HDUnit_if),
         .decode_if(decode_if),
         .execute_if(execute_if)
     );
@@ -39,6 +48,7 @@ module CPU_decode_alu_commit_wb_tb ();
         .reset (reset),
         .execute_if(execute_if),
         .FWUnit_if(FWUnit_if),
+        .HDUnit_if(HDUnit_if),
         .commit_if(commit_if)
     );
     

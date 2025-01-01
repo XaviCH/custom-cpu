@@ -4,6 +4,7 @@ interface CPU_commit_if ();
 
     typedef struct packed {
         logic branch;
+        logic jump;
         logic mem_write;
         logic mem_read;
     } commit_t;

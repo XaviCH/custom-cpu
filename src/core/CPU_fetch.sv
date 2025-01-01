@@ -18,7 +18,7 @@ module CPU_fetch
 logic [`VIRTUAL_ADDR_WIDTH-1:0] PC  = `BOOT_ADDR;
 wire [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
 
-assign next_PC = ((commit_if.commit.branch && commit_if.zero) ? commit_if.branch_result : PC + 'd4);
+assign next_PC = (((commit_if.commit.branch && commit_if.zero) || commit_if.jump) ? commit_if.branch_result : PC + 'd4);
 
 // assign icache_request_if.addr = fetch_if.PC;
 
@@ -30,9 +30,9 @@ always @(posedge clock) begin
     if (reset) begin
         PC <= `BOOT_ADDR;
     end else begin
-        //PC CACHE LOGIC
         decode_if.next_PC <= PC+'d4;
         PC <= next_PC;
+        //IM CACHE LOGIC
     end
 end
 
