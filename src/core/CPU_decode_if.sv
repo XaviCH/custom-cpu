@@ -49,17 +49,20 @@ interface CPU_decode_if ();
     logic [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
     logic valid_instr;
     instr_t instr;
+    logic nop;
     
     modport master (
         output next_PC,
         output valid_instr,
-        output instr
+        output instr,
+        output nop
     );
 
     modport slave (
         input next_PC,
         input valid_instr,
-        input instr
+        input instr,
+        input nop
     );
 
 endinterface

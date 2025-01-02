@@ -6,7 +6,7 @@ CORE_PATH = $(PROJ_PATH)/src/core
 
 FLAGS = --binary -j 0 #-Wall
 INCLUDES = -I$(PROJ_PATH)/src/
-COMMON_FILES = $(BANK_PATH)/CPU_bank_reg_if $(FW_PATH)/CPU_FWUnit_if $(HD_PATH)/CPU_HDUnit_if $(CORE_PATH)/CPU_decode_if $(CORE_PATH)/CPU_execute_if $(CORE_PATH)/CPU_commit_if $(CORE_PATH)/CPU_writeback_if
+COMMON_FILES = $(BANK_PATH)/CPU_bank_reg_if $(FW_PATH)/CPU_FWUnit_if $(HD_PATH)/CPU_HDUnit_if $(CORE_PATH)/CPU_fetch_if $(CORE_PATH)/CPU_decode_if $(CORE_PATH)/CPU_execute_if $(CORE_PATH)/CPU_commit_if $(CORE_PATH)/CPU_writeback_if
 
 .PHONY: all clean
 

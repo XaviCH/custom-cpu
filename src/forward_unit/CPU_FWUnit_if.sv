@@ -2,8 +2,11 @@
 
 interface CPU_FWUnit_if ();
 
-    wire [$clog2(`NUM_REGS)-1:0] ra_id;
-    wire [$clog2(`NUM_REGS)-1:0] rb_id;
+    wire [$clog2(`NUM_REGS)-1:0] ra_execute_id;
+    wire [$clog2(`NUM_REGS)-1:0] rb_execute_id;
+
+    wire [$clog2(`NUM_REGS)-1:0] ra_decode_id;
+    wire [$clog2(`NUM_REGS)-1:0] rb_decode_id;
 
     wire [$clog2(`NUM_REGS)-1:0] rd_commit;
     wire [`REG_WIDTH-1:0] commit_value;
@@ -13,17 +16,28 @@ interface CPU_FWUnit_if ();
     wire [`REG_WIDTH-1:0] wb_value;
     wire writeback_wb;
 
-    wire [1:0] ra_bypass;
-    wire [1:0] rb_bypass;
+    wire [1:0] ra_decode_bypass;
+    wire [1:0] rb_decode_bypass;
 
+    wire [1:0] ra_execute_bypass;
+    wire [1:0] rb_execute_bypass;
 
-    modport master_execute(
-        input ra_bypass,
-        input rb_bypass,
+    modport master_decode(
+        input ra_decode_bypass,
+        input rb_decode_bypass,
         input commit_value,
         input wb_value,
-        output ra_id,
-        output rb_id
+        output ra_decode_id,
+        output rb_decode_id
+    );
+
+    modport master_execute(
+        input ra_execute_bypass,
+        input rb_execute_bypass,
+        input commit_value,
+        input wb_value,
+        output ra_execute_id,
+        output rb_execute_id
     );
 
     modport master_commit(
@@ -39,14 +53,18 @@ interface CPU_FWUnit_if ();
     );
 
     modport slave (
-        input ra_id,
-        input rb_id,
+        input ra_decode_id,
+        input rb_decode_id,
+        input ra_execute_id,
+        input rb_execute_id,
         input rd_commit,
         input writeback_commit,
         input rd_wb,
         input writeback_wb,
-        output ra_bypass,
-        output rb_bypass,        
+        output ra_decode_bypass,
+        output rb_decode_bypass,    
+        output ra_execute_bypass,
+        output rb_execute_bypass,
         output commit_value,
         output wb_value
     );
