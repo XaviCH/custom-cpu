@@ -9,6 +9,7 @@ module CPU_full_core_tb ();
     CPU_FWUnit_if FWUnit_if();
     CPU_HDUnit_if HDUnit_if();
 
+    CPU_fetch_if fetch_if();
     CPU_decode_if decode_if();
     CPU_execute_if execute_if();
     CPU_commit_if commit_if();
@@ -37,7 +38,7 @@ module CPU_full_core_tb ();
     CPU_fetch fetch(
         .clock (clock),
         .reset (reset),
-        .commit_if(commit_if),
+        .fetch_if(fetch_if),
         .HDUnit_if(HDUnit_if),
         .decode_if(decode_if)
     );
@@ -45,7 +46,9 @@ module CPU_full_core_tb ();
     CPU_decode decode(
         .clock (clock),
         .reset (reset),
+        .fetch_if(fetch_if),
         .bank_reg_if(bank_reg_if),
+        .FWUnit_if(FWUnit_if),
         .HDUnit_if(HDUnit_if),
         .decode_if(decode_if),
         .execute_if(execute_if)
@@ -102,8 +105,9 @@ module CPU_full_core_tb ();
         $display("commit wb: %h", commit_if.writeback.reg_write);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
+        $display("nop cpu: %h", decode_if.nop);
         
         #20 // let reset a full cicle
         reset = 0;
@@ -116,8 +120,9 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
+        $display("nop cpu: %h", decode_if.nop);
 
 
 
@@ -132,8 +137,9 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
+        $display("nop cpu: %h", decode_if.nop);
 
 
 
@@ -148,8 +154,15 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
+        $display("use rb: %h", execute_if.execute.use_reg_b);
         $display("stall cpu: %h", HDUnit_if.stall);
+        $display("reg_a value: %h", decode.ra_value_br);
+        $display("reg_b value: %h", decode.rb_value_br);
+
+        $display("ra dec bypass: %h", FWUnit_if.ra_decode_bypass);
+        $display("rb dec bypass: %h", FWUnit_if.rb_decode_bypass);
+
 
 
 
@@ -164,7 +177,7 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
 
 
@@ -180,7 +193,7 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
 
 
@@ -195,7 +208,7 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
         $display("stall cpu: %h", HDUnit_if.stall);
 
 
@@ -211,7 +224,7 @@ module CPU_full_core_tb ();
         $display("alu result value: %h", commit_if.alu_result);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
-        $display("rb bypass: %h", FWUnit_if.rb_bypass);
+        $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
 
 
         $finish();

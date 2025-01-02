@@ -8,8 +8,6 @@ interface CPU_execute_if ();
     } execute_t;
 
     typedef struct packed {
-        logic branch;
-        logic jump;
         logic mem_write;
         logic mem_read;
     } commit_t;

@@ -1,16 +1,18 @@
 `include "CPU_define.vh"
 
-//DEPRECATED??
 interface CPU_fetch_if ();
 
-    logic [VIRTUAL_ADDR_WIDTH] PC;
+    wire change_PC;
+    wire [`VIRTUAL_ADDR_WIDTH-1:0] new_PC;
 
     modport master (
-        output PC
+        output change_PC,
+        output new_PC
     );
 
     modport slave (
-        input PC
+        input change_PC,
+        input new_PC
     );
 
 endinterface
