@@ -11,6 +11,7 @@ module CPU_fetch
     
     // inputs
     CPU_commit_if.slave commit_if,
+    CPU_HDUnit_if.master_fetch HDUnit_if,
     // outputs
     CPU_decode_if.master decode_if
 );
@@ -18,7 +19,10 @@ module CPU_fetch
 logic [`VIRTUAL_ADDR_WIDTH-1:0] PC  = `BOOT_ADDR;
 wire [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
 
-assign next_PC = (((commit_if.commit.branch && commit_if.zero) || commit_if.jump) ? commit_if.branch_result : PC + 'd4);
+//DUMMY FOR TESTING
+logic [`INSTR_WIDTH-1:0] ins_mem [`PAGE_WIDTH-1:0]; 
+
+assign next_PC = (((commit_if.commit.branch && commit_if.zero) || commit_if.commit.jump) ? commit_if.branch_result : PC + 'd4);
 
 // assign icache_request_if.addr = fetch_if.PC;
 
@@ -28,10 +32,23 @@ assign next_PC = (((commit_if.commit.branch && commit_if.zero) || commit_if.jump
 
 always @(posedge clock) begin
     if (reset) begin
-        PC <= `BOOT_ADDR;
+        // PC <= `BOOT_ADDR;
+        PC <= 'h0;
+        //DUMMY FOR TESTING
+        ins_mem['h0]<={7'h0, 5'h1, 5'h2, 5'h1, 10'h00};
+        ins_mem['h4]<={7'h11, 5'h1, 5'h9, 15'h00};
+        ins_mem['h8]<={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
+        ins_mem['hc]<={7'h0, 5'h1, 5'h4, 5'h1, 10'h02};
+        ins_mem['h10]<={7'h0, 5'h1, 5'h5, 5'h1, 10'h03};
+
+
     end else begin
-        decode_if.next_PC <= PC+'d4;
-        PC <= next_PC;
+        if (HDUnit_if.stall) begin
+        end else begin
+            decode_if.instr <= ins_mem[PC];
+            decode_if.next_PC <= PC+'d4;
+            PC <= next_PC; 
+        end
         //IM CACHE LOGIC
     end
 end

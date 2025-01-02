@@ -37,10 +37,12 @@ always @(posedge clock) begin
         //BRANCH
         commit_if.branch_result <= (execute_if.commit.jump ? ra_value : execute_if.next_PC) + (execute_if.offset_data<<2);
         //ALU
-        if (execute_if.execute.alu_op == `ISA_ADD_OP) begin
+        if (execute_if.execute.alu_op == `ALU_ADD_OP) begin
             commit_if.alu_result <= ra_value + rb_value;
-        end else if (execute_if.execute.alu_op == `ISA_SUB_OP) begin
+        end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
             commit_if.alu_result <= ra_value + rb_value;            
+        end else if (execute_if.execute.alu_op == `ALU_MUL_OP) begin
+
         end
         if (commit_if.alu_result==0) begin
             commit_if.zero<='b1;

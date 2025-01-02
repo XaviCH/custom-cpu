@@ -12,17 +12,18 @@ module CPU_decode
     // ouput
     CPU_execute_if.master execute_if
 );
+//mem->wb
 
 assign bank_reg_if.read_reg_a = decode_if.instr.r_instr.src1;
 assign bank_reg_if.read_reg_b = decode_if.instr.r_instr.src2;
 
-assign execute_if.ra_id = decode_if.instr.r_instr.src1;
-assign execute_if.rb_id = decode_if.instr.r_instr.src2;
-
+//HAZARD READ AFTER LOAD
 assign HDUnit_if.ra_use = (decode_if.instr[31:29] == `R_TYPE_OP || (decode_if.instr[31:29] == `M_TYPE_OP && decode_if.instr[31:25] != `ISA_MOV_OP) || decode_if.instr[31:25] == `ISA_BEQ_OP || decode_if.instr[31:25] == `ISA_JUMP_OP || decode_if.instr[31:25] == `ISA_TLB_WRITE_OP);
 assign HDUnit_if.decode_ra = decode_if.instr.r_instr.src1;
 assign HDUnit_if.rb_use = (decode_if.instr[31:29] == `R_TYPE_OP || decode_if.instr[31:25] == `ISA_BEQ_OP || decode_if.instr[31:25] == `ISA_TLB_WRITE_OP);
 assign HDUnit_if.decode_rb = decode_if.instr.r_instr.src2;
+
+//HAZARD BRANCHING
 
 always @(posedge clock, posedge reset) begin
     if (reset) begin 
@@ -35,9 +36,15 @@ always @(posedge clock, posedge reset) begin
         execute_if.ra_data <= bank_reg_if.read_data_a;
         execute_if.rb_data <= bank_reg_if.read_data_b;
 
+        execute_if.ra_id <= decode_if.instr.r_instr.src1;
+        execute_if.rb_id <= decode_if.instr.r_instr.src2;
+
         execute_if.reg_dest <= decode_if.instr.r_instr.dst;
+        if (HDUnit_if.stall) begin
+            execute_if.commit <= '0;
+            execute_if.writeback.reg_write <= '0;
         //R_TYPE
-        if (decode_if.instr[31:29] == `R_TYPE_OP) begin
+        end else if (decode_if.instr[31:29] == `R_TYPE_OP) begin
             execute_if.execute.use_reg_b <= '1;
             execute_if.commit <= '0;
             execute_if.writeback.mem_to_reg <= '0;
