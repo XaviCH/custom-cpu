@@ -31,31 +31,31 @@ module CPU_cache_tb ();
         cache_request_if.data = 'x;
         cache_request_if.addr = 'h0;
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         mem_response_if.valid = '1;
         mem_response_if.addr = mem_request_if.addr;
         mem_response_if.data = 128'hDDDDDDDDCCCCCCCCBBBBBBBBAAAAAAAA;
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         cache_request_if.addr = 'h4;
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         cache_request_if.addr = 'h8;
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         cache_request_if.addr = 'hc;
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         #20
         $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.valid, cache_response_if.data);
+        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
         $finish();
     end
 
