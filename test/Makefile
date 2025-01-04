@@ -8,3 +8,4 @@ all:
 clean:
 	make -C cache clean
 	make -C mem clean
+	make -C core clean

@@ -29,6 +29,11 @@
 
 `define NUM_ALU_OPS 3
 
+//INS TYPE
+`define R_TYPE_OP 'b00
+`define M_TYPE_OP 'b01
+`define B_TYPE_OP 'b11
+
 // ALU OPS
 `define ALU_ADD_OP 'b00
 `define ALU_SUB_OP 'b01
@@ -40,19 +45,26 @@
 `define SUPERUSER_MODE 0
 // ISA 
 
-`define ISA_ADD_OP 'b0000
-`define ISA_SUB_OP 'b0001
-`define ISA_MUL_OP 'b0010
-`define ISA_LDB_OP
-`define ISA_LDW_OP
-`define ISA_STB_OP
-`define ISA_STW_OP
-`define ISA_BEQ_OP
-`define ISA_JUMP_OP
+`define ISA_ADD_OP 'h0
+`define ISA_SUB_OP 'h1
+`define ISA_MUL_OP 'h2
+`define ISA_LDB_OP 'h10
+`define ISA_LDW_OP 'h11
+`define ISA_STB_OP 'h12
+`define ISA_STW_OP 'h13
+`define ISA_MOV_OP 'h14
+`define ISA_BEQ_OP 'h30
+`define ISA_JUMP_OP 'h31
+
+`define ISA_TLB_WRITE_OP 'h32
+`define ISA_IRET_OP 'h33
 
 // MEM 
 `define STOREBUFFER_SIZE 10
 `define MEM_LATENCY 5
 `define MEM_SIZE 1024*1024 // 2^10 bytes
+
+//MUL
+`define MUL_STAGES 5
 
 `endif 

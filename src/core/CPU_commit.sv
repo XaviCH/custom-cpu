@@ -14,6 +14,8 @@ module CPU_commit #(
 (
     input wire clock,
     input wire reset,
+    input wire clock,
+    input wire reset,
 
     // input
     CPU_commit_if.slave commit,

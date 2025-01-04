@@ -2,20 +2,29 @@
 
 interface CPU_writeback_if ();
 
-    logic wb;
-    logic [REG_WIDTH] read_data;
-    logic [REG_WIDTH] alu_result;
+    typedef struct packed {
+        logic mem_to_reg;
+        logic reg_write;
+    } writeback_t;
+
+    writeback_t writeback;
+
+    logic [$clog2(`NUM_REGS)-1:0] reg_dest;
+    logic [`REG_WIDTH-1:0] mem_data;
+    logic [`REG_WIDTH-1:0] alu_data;
 
     modport master (
-        output wb,
-        output read_data,
-        output alu_result
+        output writeback,
+        output reg_dest,
+        output mem_data,
+        output alu_data
     );
 
     modport slave (
-        input wb,
-        input read_data,
-        input alu_result
+        input writeback,
+        output reg_dest,
+        input mem_data,
+        input alu_data
     );
 
 endinterface
