@@ -21,6 +21,14 @@ interface CPU_HDUnit_if ();
     //JUMP HAZARD EXECUTE
     wire jump_decode;
 
+    //MUL HAZARD
+    typedef struct packed {
+        logic write_back;
+        logic [$clog2(`NUM_REGS)-1:0] rd_id;
+    } mul_writeback_t;
+
+    mul_writeback_t mul_wb[5];
+
     wire stall;
 
 
@@ -43,6 +51,11 @@ interface CPU_HDUnit_if ();
         output execute_wb,
         output execute_rd
     );
+
+    modport master_mul(
+        output mul_wb
+    );
+
     modport master_commit(
         output commit_mem_read,
         output commit_rd
@@ -60,6 +73,7 @@ interface CPU_HDUnit_if ();
         input commit_mem_read,
         input commit_rd,
         input execute_wb,
+        input mul_wb,
         output stall
     );
 

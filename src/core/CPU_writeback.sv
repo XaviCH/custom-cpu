@@ -22,4 +22,8 @@ assign FWUnit_if.rd_wb = writeback_if.reg_dest;
 assign FWUnit_if.writeback_wb = writeback_if.writeback.reg_write;
 assign FWUnit_if.wb_value = writeback_if.alu_data;
 
+assign FWUnit_if.rd_wb_mul = writeback_if.writeback_mul.rd_id;
+assign FWUnit_if.writeback_wb_mul = writeback_if.writeback_mul.writeback_mul;
+assign FWUnit_if.wb_value_mul = writeback_if.writeback_mul.mul_result;
+
 endmodule

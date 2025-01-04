@@ -23,8 +23,8 @@ assign HDUnit_if.execute_mem_read=execute_if.commit.mem_read;
 assign HDUnit_if.execute_rd=execute_if.reg_dest;
 assign HDUnit_if.execute_wb=execute_if.writeback.reg_write;
 
-assign ra_value = (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
-assign rb_value = (execute_if.execute.use_reg_b ? (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
+assign ra_value = FWUnit_if.ra_execute_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
+assign rb_value = FWUnit_if.rb_execute_bypass_mul ? FWUnit_if.wb_value_mul : (execute_if.execute.use_reg_b ? (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
 
 assign mul_unit_if.ra_data = ra_value;
 assign mul_unit_if.rb_data = ra_value;

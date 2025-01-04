@@ -33,8 +33,8 @@ wire [`REG_WIDTH-1:0] rb_value_br;
 assign FWUnit_if.ra_decode_id = decode_if.instr.b_instr.src1;
 assign FWUnit_if.rb_decode_id = decode_if.instr.b_instr.src2_offset_m;
 
-assign ra_value_br = (FWUnit_if.ra_decode_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_decode_bypass[0] ? FWUnit_if.wb_value : bank_reg_if.read_data_a));
-assign rb_value_br = (FWUnit_if.rb_decode_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_decode_bypass[0] ? FWUnit_if.wb_value : bank_reg_if.read_data_b));
+assign ra_value_br = FWUnit_if.ra_decode_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.ra_decode_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_decode_bypass[0] ? FWUnit_if.wb_value : bank_reg_if.read_data_a));
+assign rb_value_br = FWUnit_if.rb_decode_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.rb_decode_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_decode_bypass[0] ? FWUnit_if.wb_value : bank_reg_if.read_data_b));
 
 //HAZARD BRANCHING
 assign HDUnit_if.branch_decode= decode_if.instr.b_instr.opcode== `ISA_BEQ_OP;

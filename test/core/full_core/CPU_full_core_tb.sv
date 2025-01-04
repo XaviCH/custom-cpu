@@ -41,6 +41,7 @@ module CPU_full_core_tb ();
         .clock(clock),
         .reset(reset),
         .writeback_if(writeback_if),
+        .HDUnit_if(HDUnit_if),
         .mul_unit_if(mul_unit_if)
     );
 
@@ -99,6 +100,12 @@ module CPU_full_core_tb ();
     initial begin
         reset = 1;
         #20 // let reset a full cicle
+        fetch.ins_mem['h0]={7'h0, 5'h2, 5'h3, 5'h2, 10'h01};
+        fetch.ins_mem['h4]={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
+        fetch.ins_mem['h8]={7'h30, 5'h0, 5'h1, 5'h1, 10'h10};
+        // ins_mem['hc]<={7'h0, 5'h1, 5'h4, 5'h1, 10'h02};
+        // ins_mem['h10]<={7'h0, 5'h1, 5'h5, 5'h1, 10'h03};
+
         bank_reg.reg_file[1] = 1;
         bank_reg.reg_file[2] = 2;
         bank_reg.reg_file[3] = 3;
