@@ -4,7 +4,11 @@ interface CPU_HDUnit_if ();
 
     //READ AFTER LOAD
     wire execute_mem_read;
+    wire commit_mem_read;
+
     wire [$clog2(`NUM_REGS)-1:0] execute_rd;
+    wire [$clog2(`NUM_REGS)-1:0] commit_rd;
+
     wire [$clog2(`NUM_REGS)-1:0] decode_ra;
     wire ra_use;
     wire [$clog2(`NUM_REGS)-1:0] decode_rb;
@@ -19,11 +23,6 @@ interface CPU_HDUnit_if ();
 
     wire stall;
 
-    modport master_execute(
-        output execute_mem_read,
-        output execute_wb,
-        output execute_rd
-    );
 
     modport master_fetch(
         input stall
@@ -39,6 +38,16 @@ interface CPU_HDUnit_if ();
         output jump_decode
     );
 
+    modport master_execute(
+        output execute_mem_read,
+        output execute_wb,
+        output execute_rd
+    );
+    modport master_commit(
+        output commit_mem_read,
+        output commit_rd
+    );
+
     modport slave (
         input execute_mem_read,
         input execute_rd,
@@ -48,6 +57,8 @@ interface CPU_HDUnit_if ();
         input rb_use,
         input branch_decode,
         input jump_decode,
+        input commit_mem_read,
+        input commit_rd,
         input execute_wb,
         output stall
     );

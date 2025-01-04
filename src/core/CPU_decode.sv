@@ -12,6 +12,7 @@ module CPU_decode
     CPU_decode_if.slave decode_if,
     // ouput
     CPU_fetch_if.master fetch_if,
+    CPU_mul_unit_if.master_decode mul_unit_if,
     CPU_execute_if.master execute_if
 );
 //mem->wb
@@ -71,23 +72,27 @@ always @(posedge clock, posedge reset) begin
         execute_if.reg_dest <= decode_if.instr.r_instr.dst;
         if (HDUnit_if.stall || decode_if.nop) begin
             execute_if.commit <= '0;
-            execute_if.writeback.reg_write <= '0;
+            execute_if.writeback <= '0;
+            mul_unit_if.writeback_mul<=0;
         //R_TYPE
         end else if (decode_if.instr[31:29] == `R_TYPE_OP) begin
             execute_if.execute.use_reg_b <= '1;
             execute_if.commit <= '0;
-            execute_if.writeback.mem_to_reg <= '0;
-            execute_if.writeback.reg_write <= '1;
             if (decode_if.instr.r_instr.opcode== `ISA_MUL_OP) begin
-                //TODO: MUL
+                mul_unit_if.writeback_mul<=1;
+                execute_if.writeback<=0;
             end else begin 
+                execute_if.writeback.mem_to_reg <= '0;
+                execute_if.writeback.reg_write <= '1;
                 execute_if.execute.alu_op <= decode_if.instr[26:25];
+                mul_unit_if.writeback_mul<=0;
             end
         //M_TYPE
         end else if (decode_if.instr[31:29]==`M_TYPE_OP) begin
             execute_if.execute.use_reg_b <= '0;
             execute_if.execute.alu_op <= `ALU_ADD_OP;
             execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
+            mul_unit_if.writeback_mul<=0;
             //LOAD
             if (decode_if.instr.b_instr.opcode== `ISA_LDB_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
                 execute_if.commit.mem_read <= '1;
@@ -104,6 +109,7 @@ always @(posedge clock, posedge reset) begin
         end else if (decode_if.instr[31:29]==`B_TYPE_OP) begin
             execute_if.commit <= '0;
             execute_if.writeback <= '0;
+            mul_unit_if.writeback_mul<=0;
         end
         // TODO Make others
     end

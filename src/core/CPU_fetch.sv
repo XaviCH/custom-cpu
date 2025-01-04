@@ -32,9 +32,9 @@ always @(posedge clock) begin
         // PC <= `BOOT_ADDR;
         //DUMMY FOR TESTING
         PC <= 'h0;
-        ins_mem['h0]<={7'h0, 5'h2, 5'h3, 5'h2, 10'h01};
-        ins_mem['h4]<={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
-        ins_mem['h8]<={7'h30, 5'h0, 5'h1, 5'h1, 10'h10};
+        ins_mem['h0]<={7'h2, 5'h1, 5'h3, 5'h2, 10'h01};
+        // ins_mem['h4]<={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
+        // ins_mem['h8]<={7'h30, 5'h0, 5'h1, 5'h1, 10'h10};
         // ins_mem['hc]<={7'h0, 5'h1, 5'h4, 5'h1, 10'h02};
         // ins_mem['h10]<={7'h0, 5'h1, 5'h5, 5'h1, 10'h03};
 

@@ -19,6 +19,7 @@ always @(posedge clock) begin
         for (i=0; i<`NUM_REGS; i=i+1) reg_file[i] <= 0;
     end else begin
         if (bank_reg_if.write_enable) reg_file[bank_reg_if.write_reg] <= bank_reg_if.write_data;
+        if (bank_reg_if.write_enable_mul) reg_file[bank_reg_if.write_reg_mul] <= bank_reg_if.write_data_mul;
     end
 end
 
