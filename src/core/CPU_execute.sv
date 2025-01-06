@@ -10,7 +10,8 @@ module CPU_execute
     CPU_FWUnit_if.master_execute FWUnit_if,
     CPU_HDUnit_if.master_execute HDUnit_if,
     CPU_mul_unit_if.master_execute mul_unit_if,
-    CPU_commit_if.master commit_if
+    CPU_commit_if.master commit_if,
+    CPU_writeback_if.master write_back
 );
 
 wire [`REG_WIDTH-1:0] ra_value;

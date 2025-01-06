@@ -1,4 +1,11 @@
+`ifndef CPU_DEFINE_VH
+`define CPU_DEFINE_VH
+
 // CONFIG
+
+// DCACHE
+
+`define NUM_TLB_ENTRIES 4
 
 `define NUM_REGS 32
 `define NUM_CACHE_LINES 4
@@ -11,13 +18,14 @@
 `define LINE_WIDTH 128
 
 `define BOOT_ADDR 'h1000 
-`define EXCEPTION_ADDR 'h1000
+`define EXCEPTION_ADDR 'h2000
+`define PROGRAM_ADDR 'h8000 
 
 `define MEMORY_BUS_LATENCY 5
 
 `define VIRTUAL_ADDR_WIDTH 32
 `define PHYSICAL_ADDR_WIDTH 20
-`define PAGE_WIDTH 4096
+`define PAGE_SIZE 4096
 
 `define NUM_ALU_OPS 3
 
@@ -31,6 +39,10 @@
 `define ALU_SUB_OP 'b01
 `define ALU_MUL_OP 'b10
 
+// OS
+
+`define USER_MODE 0
+`define SUPERUSER_MODE 0
 // ISA 
 
 `define ISA_ADD_OP 'h0
@@ -48,9 +60,11 @@
 `define ISA_IRET_OP 'h33
 
 // MEM 
-
+`define STOREBUFFER_SIZE 10
 `define MEM_LATENCY 5
 `define MEM_SIZE 1024*1024 // 2^10 bytes
 
 //MUL
 `define MUL_STAGES 5
+
+`endif 
