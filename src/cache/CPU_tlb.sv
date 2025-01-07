@@ -19,8 +19,8 @@ module CPU_tlb
     input wire [VALUE_WIDTH-1:0] value, 
     input wire write,
 
-    output wire [VALUE_WIDTH-1:0] out,
-    output wire hit
+    output wire hit,
+    output wire [VALUE_WIDTH-1:0] out
 );
     typedef logic [KEY_WIDTH-1:0] tlb_key_t; 
     typedef logic [VALUE_WIDTH-1:0] tlb_value_t; 

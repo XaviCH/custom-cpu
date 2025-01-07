@@ -67,4 +67,4 @@
 //MUL
 `define MUL_STAGES 5
 
-`endif 
+`endif

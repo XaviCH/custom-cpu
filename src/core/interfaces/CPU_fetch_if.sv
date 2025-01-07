@@ -2,17 +2,27 @@
 
 interface CPU_fetch_if ();
 
-    wire change_PC;
-    wire [`VIRTUAL_ADDR_WIDTH-1:0] new_PC;
+    logic tlb_enable, tlb_write;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] tlb_addr;
+    logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
 
-    modport master (
-        output change_PC,
-        output new_PC
+    logic [`PHYSICAL_ADDR_WIDTH-1:0] pc;
+    logic exception;
+
+    modport request (
+        input tlb_enable, tlb_write, tlb_addr, tlb_data,
+        input pc, exception
     );
 
-    modport slave (
-        input change_PC,
-        input new_PC
+    logic tlb_hit;
+
+    logic [`INSTR_WIDTH-1:0] instr;
+    logic cache_hit;
+    logic [`PHYSICAL_ADDR_WIDTH-1:0] next_pc;
+
+    modport response (
+        output tlb_hit,
+        output instr, cache_hit, next_pc
     );
 
 endinterface

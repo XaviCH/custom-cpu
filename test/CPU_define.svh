@@ -1,5 +1,5 @@
-`ifndef CPU_TEST_DEFINE_SVH
-`define CPU_TEST_DEFINE_SVH
+`ifndef CPU_DEFINE_TB_SVH
+`define CPU_DEFINE_TB_SVH
 
 `define SUCCESS \
     $display("SUCCESS."); \

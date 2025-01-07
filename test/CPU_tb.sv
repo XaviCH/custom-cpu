@@ -1,8 +1,8 @@
-`include "CPU_define.vh"
+`include "core/CPU_core.sv"
+`include "mem/MEM_core.sv"
 `include "test/CPU_define_tb.svh"
-`include "cache/CPU_tlb.sv"
 
-module CPU_tlb_tb ();
+module CPU_tb ();
     localparam SIZE = 3;
     localparam KEY_WIDTH = 16;
     localparam VALUE_WIDTH = 16;
@@ -17,11 +17,11 @@ module CPU_tlb_tb ();
     logic [VALUE_WIDTH-1:0] out;
     logic hit;
 
-    CPU_tlb #(
-        .SIZE(SIZE),
-        .KEY_WIDTH(KEY_WIDTH),
-        .VALUE_WIDTH(VALUE_WIDTH)
-    ) tlb(
+    MEM_core mem (
+
+    );
+
+    CPU_core core (
         .clock (clock),
         .reset (reset),
         .key (key),

@@ -1,54 +1,80 @@
 `include "CPU_define.vh"
+`include "CPU_types.vh"
+`include "cache/CPU_cache.sv"
+`include "cache/CPU_tlb.sv"
+`include "core/interfaces/CPU_fetch_if"
+`include "cache/interfaces/CPU_mem_bus_request_if"
+`include "cache/interfaces/CPU_mem_bus_response_if"
 
-module CPU_fetch
+module CPU_fetch #(
+    parameter ADDR_WIDTH = `VIRTUAL_ADDR_WIDTH,
+    parameter MEM_ADDR_WIDTH = `PHYSICAL_ADDR_WIDTH,
+    parameter DATA_WIDTH = `REG_WIDTH
+)
 (
     input wire clock,
     input wire reset,
 
-    // cache interface
-    // CPU_cache_request_if.master icache_request_if,
-    // CPU_cache_response_if.slave icache_response_if,
-    
-    // inputs
-    CPU_fetch_if.slave fetch_if,
-    CPU_HDUnit_if.master_fetch HDUnit_if,
-    // outputs
-    CPU_decode_if.master decode_if
+    // input
+    CPU_fetch_if.request fetch_request,
+    CPU_mem_bus_response_if.slave mem_bus_response,
+    input logic mem_bus_available,
+    // output
+
+    CPU_fetch_if.response fetch_response,
+    CPU_mem_bus_request_if.master mem_bus_request
 );
 
-logic [`VIRTUAL_ADDR_WIDTH-1:0] PC  = `BOOT_ADDR;
+    CPU_cache_request_if    cache_request();
+    CPU_cache_response_if   cache_response();
 
-//DUMMY FOR TESTING
-logic [`INSTR_WIDTH-1:0] ins_mem [`PAGE_WIDTH-1:0]; 
+    logic [MEM_ADDR_WIDTH-1:0] _tlb_out;
+    logic _tlb_hit;
 
-// assign icache_request_if.addr = fetch_if.PC;
+    CPU_tlb #(
+        .SIZE(`NUM_TLB_ENTRIES),
+        .KEY_WIDTH(ADDR_WIDTH),
+        .VALUE_WIDTH(MEM_ADDR_WIDTH)
+    ) tlb (
+        .clock(clock),
+        .reset(reset),
+        .key(fetch_request.tlb_addr),
+        .value(fetch_request.tlb_data), 
+        .write(fetch_request.tlb_write),
+        .out(_tlb_out)
+    );
 
-// assign decode_if.valid = icache_response_if.valid;
-// assign decode_if.instr = icache_response_if.word;
+    assign _tlb_hit = _tlb_out == cache_response.addr;
 
+    assign cache_request.read = 1 && (_tlb_hit || ~fetch_request.tlb_enable);
+    assign cache_request.write = 0; // Write not allowed on icache
+    assign cache_request.mode = WORD; //
+    assign cache_request.addr = fetch_request.pc;
 
-always @(posedge clock) begin
-    if (reset) begin
-        // PC <= `BOOT_ADDR;
-        //DUMMY FOR TESTING
-        PC <= 'h0;
-        ins_mem['h0]<={7'h0, 5'h2, 5'h3, 5'h2, 10'h01};
-        ins_mem['h4]<={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
-        ins_mem['h8]<={7'h30, 5'h0, 5'h1, 5'h1, 10'h10};
-        // ins_mem['hc]<={7'h0, 5'h1, 5'h4, 5'h1, 10'h02};
-        // ins_mem['h10]<={7'h0, 5'h1, 5'h5, 5'h1, 10'h03};
+    CPU_cache cache (
+        .clock(clock),
+        .reset(reset),
+        .cache_request(cache_request),
+        .cache_response(cache_response),
+        .mem_bus_available(mem_bus_available),
+        .mem_bus_response(mem_bus_response),
+        .mem_bus_request(mem_bus_request)
+    );
+    
+    assign fetch_response.tlb_hit = _tlb_hit;
+    assign fetch_response.instr = cache_response.data;
+    assign fetch_response.cache_hit = cache_response.hit;
 
-
-    end else begin
-        if (HDUnit_if.stall) begin
+    always begin
+        if (reset) begin
+            fetch_response.next_pc = `BOOT_ADDR;
         end else begin
-            decode_if.instr <= ins_mem[PC];
-            decode_if.next_PC <= PC+'d4;
-            PC <= fetch_if.change_PC ? fetch_if.new_PC : PC+'d4; 
-            decode_if.nop <= fetch_if.change_PC;
+            if (fetch_request.exception) begin
+                fetch_response.next_pc = `EXCEPTION_ADDR;
+            end else begin
+                fetch_response.next_pc = fetch_request.pc + 4;
+            end 
         end
-        //IM CACHE LOGIC
     end
-end
 
 endmodule
