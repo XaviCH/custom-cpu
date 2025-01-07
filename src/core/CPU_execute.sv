@@ -9,7 +9,9 @@ module CPU_execute
     // output
     CPU_FWUnit_if.master_execute FWUnit_if,
     CPU_HDUnit_if.master_execute HDUnit_if,
-    CPU_commit_if.master commit_if
+    CPU_mul_unit_if.master_execute mul_unit_if,
+    CPU_commit_if.master commit_if,
+    CPU_writeback_if.master write_back
 );
 
 wire [`REG_WIDTH-1:0] ra_value;
@@ -22,8 +24,13 @@ assign HDUnit_if.execute_mem_read=execute_if.commit.mem_read;
 assign HDUnit_if.execute_rd=execute_if.reg_dest;
 assign HDUnit_if.execute_wb=execute_if.writeback.reg_write;
 
-assign ra_value = (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
-assign rb_value = (execute_if.execute.use_reg_b ? (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
+assign ra_value = FWUnit_if.ra_execute_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
+assign rb_value = FWUnit_if.rb_execute_bypass_mul ? FWUnit_if.wb_value_mul : (execute_if.execute.use_reg_b ? (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
+
+assign mul_unit_if.ra_data = ra_value;
+assign mul_unit_if.rb_data = ra_value;
+
+assign mul_unit_if.rd_id = execute_if.reg_dest;
 
 always @(posedge clock) begin
     if (reset) begin
@@ -40,9 +47,7 @@ always @(posedge clock) begin
             commit_if.alu_result <= ra_value + rb_value;
         end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
             commit_if.alu_result <= ra_value + rb_value;            
-        end else if (execute_if.execute.alu_op == `ALU_MUL_OP) begin
-
-        end
+        end 
         if (commit_if.alu_result==0) begin
             commit_if.zero<='b1;
         end
