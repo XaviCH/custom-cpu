@@ -1,6 +1,7 @@
 `include "CPU_define.vh"
 `include "CPU_types.vh"
 `include "cache/CPU_cache_types.svh"
+`include "cache/CPU_storebuffer.sv"
 `include "cache/interfaces/CPU_cache_request_if.sv"
 `include "cache/interfaces/CPU_cache_response_if.sv"
 `include "cache/interfaces/CPU_mem_bus_request_if.sv"
@@ -59,21 +60,21 @@ module CPU_cache
 
     // Helpful logic declarations
 
-    logic [$clog2(SIZE)-1:0]             _line_idx;
-    logic [$clog2(BYTES_IN_LINE)-1:0]    _line_byte_idx;
-    logic [$clog2(HALFS_IN_LINE)-1:0]    _line_half_idx;
-    logic [$clog2(WORDS_IN_LINE)-1:0]    _line_word_idx;
+    logic [$clog2(SIZE)-1:0]            _line_idx;
+    logic [$clog2(BYTES_IN_LINE)-1:0]   _line_byte_idx;
+    logic [$clog2(HALFS_IN_LINE)-1:0]   _line_half_idx;
+    logic [$clog2(WORDS_IN_LINE)-1:0]   _line_word_idx;
 
-    logic [$clog2(BYTES_IN_WORD)-1:0] _word_byte_idx;
-    logic [$clog2(HALFS_IN_WORD)-1:0] _word_half_idx;
+    logic [$clog2(BYTES_IN_WORD)-1:0]   _word_byte_idx;
+    logic [$clog2(HALFS_IN_WORD)-1:0]   _word_half_idx;
 
-    assign _line_idx = cache_request.addr[WORDS_IN_LINE +: $clog2(SIZE)];
-    assign _line_byte_idx = cache_request.addr[0 +: $clog2(BYTES_IN_LINE)];
-    assign _line_half_idx = cache_request.addr[0 +: $clog2(HALFS_IN_LINE)];
-    assign _line_word_idx = cache_request.addr[0 +: $clog2(WORDS_IN_LINE)];
+    assign _line_idx        = cache_request.addr[WORDS_IN_LINE +: $clog2(SIZE)];
+    assign _line_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_LINE)];
+    assign _line_half_idx   = cache_request.addr[0 +: $clog2(HALFS_IN_LINE)];
+    assign _line_word_idx   = cache_request.addr[0 +: $clog2(WORDS_IN_LINE)];
 
-    assign _word_byte_idx = cache_request.addr[0 +: $clog2(BYTES_IN_WORD)];
-    assign _word_half_idx = cache_request.addr[0 +: $clog2(HALFS_IN_WORD)];
+    assign _word_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_WORD)];
+    assign _word_half_idx   = cache_request.addr[0 +: $clog2(HALFS_IN_WORD)];
 
     // Storebuffer logic
 

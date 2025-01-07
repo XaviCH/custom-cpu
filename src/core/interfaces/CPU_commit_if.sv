@@ -1,4 +1,5 @@
 `include "CPU_define.vh"
+`include "cache/CPU_cache_types.svh"
 
 interface CPU_commit_if ();
 
@@ -22,6 +23,17 @@ interface CPU_commit_if ();
     //BRANCH
     logic zero;
 
+    // TLB logic
+    logic tlb_enable, tlb_write;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] tlb_addr;
+    logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
+    // Cache logic
+    logic cache_write, cache_read;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] cache_addr;
+    logic [`REG_WIDTH-1:0] cache_data_in;
+    cache_mode_e cache_mode;
+
+
     modport master (
         output commit,
         output writeback,
@@ -31,13 +43,19 @@ interface CPU_commit_if ();
         output reg_dest
     );
 
-    modport slave (
-        input commit,
-        input writeback,
-        input alu_result,
-        input zero,
-        input rb_data,
-        input reg_dest
+    modport request (
+        input tlb_enable, tlb_write, tlb_addr, tlb_data,
+        input cache_write, cache_read, cache_mode, cache_addr, cache_data_in
+    );
+
+    logic tlb_hit;
+
+    logic cache_hit;
+    logic [`WORD_WIDTH-1:0] cache_data_out;
+
+    modport response (
+        output tlb_hit,
+        output cache_hit, cache_data_out
     );
 
 endinterface

@@ -20,4 +20,4 @@ typedef union {
     word_t [`LINE_WIDTH/`WORD_WIDTH-1:0] as_words;
 } line_t;
 
-`endif 
+`endif
