@@ -54,7 +54,7 @@ interface CPU_commit_if ();
     logic [`WORD_WIDTH-1:0] cache_data_out;
 
     modport response (
-        output tlb_hit, 
+        output tlb_hit,
         output cache_hit, cache_data_out
     );
 

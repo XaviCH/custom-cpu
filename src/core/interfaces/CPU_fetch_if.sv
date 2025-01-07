@@ -7,6 +7,8 @@ interface CPU_fetch_if ();
     logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
 
     logic [`PHYSICAL_ADDR_WIDTH-1:0] pc;
+    logic [`PHYSICAL_ADDR_WIDTH-1:0] jump_pc;
+    logic jump;
     logic exception;
 
     modport request (

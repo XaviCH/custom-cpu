@@ -65,12 +65,14 @@ module CPU_fetch #(
     assign fetch_response.instr = cache_response.data;
     assign fetch_response.cache_hit = cache_response.hit;
 
-    always begin
+    always_latch begin
         if (reset) begin
             fetch_response.next_pc = `BOOT_ADDR;
         end else begin
             if (fetch_request.exception) begin
                 fetch_response.next_pc = `EXCEPTION_ADDR;
+            end else if (fetch_request.jump) begin
+                fetch_response.next_pc = fetch_request.jump_pc;
             end else begin
                 fetch_response.next_pc = fetch_request.pc + 4;
             end 

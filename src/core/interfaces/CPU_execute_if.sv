@@ -1,4 +1,5 @@
 `include "CPU_define.vh"
+`include "cache/CPU_cache_types.svh"
 
 interface CPU_execute_if ();
 
@@ -10,6 +11,7 @@ interface CPU_execute_if ();
     typedef struct packed {
         logic mem_write;
         logic mem_read;
+        cache_mode_e mode;
     } commit_t;
 
     typedef struct packed {

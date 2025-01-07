@@ -46,15 +46,15 @@ wire [`VIRTUAL_ADDR_WIDTH-1:0] jump_offset;
 assign branch_offset = {{17{decode_if.instr.b_instr.offset_high[4]}}, decode_if.instr.b_instr.offset_high, decode_if.instr.b_instr.offset_low} << 2;
 assign jump_offset = {{12{decode_if.instr.b_instr.offset_high[4]}}, decode_if.instr.b_instr.offset_high, decode_if.instr.b_instr.src2_offset_m, decode_if.instr.b_instr.offset_low};
 
-assign fetch_if.new_PC = decode_if.instr.b_instr.opcode== `ISA_BEQ_OP ? decode_if.next_PC + branch_offset : ra_value_br + jump_offset;
+assign fetch_if.jump_PC = decode_if.instr.b_instr.opcode== `ISA_BEQ_OP ? decode_if.next_PC + branch_offset : ra_value_br + jump_offset;
 
 //CHECK IF CHANGING
-assign fetch_if.change_PC = (decode_if.instr.b_instr.opcode== `ISA_BEQ_OP && ra_value_br == rb_value_br) || decode_if.instr.b_instr.opcode== `ISA_JUMP_OP;
+assign fetch_if.jump = (decode_if.instr.b_instr.opcode== `ISA_BEQ_OP && ra_value_br == rb_value_br) || decode_if.instr.b_instr.opcode== `ISA_JUMP_OP;
 
 
 //HAZARD BRANCHING
 
-always @(posedge clock, posedge reset) begin
+always @(posedge clock) begin
     if (reset) begin 
         execute_if.commit <= '0;
         execute_if.writeback.reg_write <= '0;
@@ -95,10 +95,18 @@ always @(posedge clock, posedge reset) begin
                 execute_if.writeback.mem_to_reg <= '1;
                 execute_if.writeback.reg_write <= '1;
             //STORE
-            end else if (decode_if.instr.b_instr.opcode== `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_STW_OP) begin 
+            end else if (decode_if.instr.b_instr.opcode== `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_STW_OP) begin
                 execute_if.commit.mem_write <= '1;
                 execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
+            end
+
+            if (decode_if.instr.b_instr.opcode == `ISA_STW_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
+                execute_if.commit.mode <= WORD;
+            end else if (decode_if.instr.b_instr.opcode == `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_LDB_OP) begin
+                execute_if.commit.mode <= BYTE;
+            end else begin
+                $error("No mode implemented in decode");
             end
         //BTYPE
         end else if (decode_if.instr[31:29]==`B_TYPE_OP) begin
