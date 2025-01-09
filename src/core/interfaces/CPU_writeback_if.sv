@@ -7,7 +7,14 @@ interface CPU_writeback_if ();
         logic reg_write;
     } writeback_t;
 
+typedef struct packed {
+    logic writeback_mul;
+    logic [$clog2(`NUM_REGS)-1:0] rd_id;
+    logic [`REG_WIDTH-1:0] mul_result;
+} writeback_mul_t;
+
     writeback_t writeback;
+    writeback_mul_t writeback_mul;
 
     logic [$clog2(`NUM_REGS)-1:0] reg_dest;
     logic [`REG_WIDTH-1:0] mem_data;
@@ -20,9 +27,14 @@ interface CPU_writeback_if ();
         output alu_data
     );
 
+    modport master_mul (
+        output writeback_mul
+    );
+
     modport slave (
         input writeback,
-        output reg_dest,
+        input writeback_mul,
+        input reg_dest,
         input mem_data,
         input alu_data
     );

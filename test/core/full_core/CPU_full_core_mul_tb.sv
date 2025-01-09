@@ -1,6 +1,6 @@
 `include "CPU_define.vh"
 
-module CPU_full_core_tb ();
+module CPU_full_core_mul_tb ();
     
     reg clock;
     reg reset;
@@ -100,11 +100,10 @@ module CPU_full_core_tb ();
     initial begin
         reset = 1;
         #20 // let reset a full cicle
-        fetch.ins_mem['h0]={7'h0, 5'h2, 5'h3, 5'h2, 10'h01};
-        fetch.ins_mem['h4]={7'h0, 5'h1, 5'h3, 5'h1, 10'h01};
-        fetch.ins_mem['h8]={7'h30, 5'h0, 5'h1, 5'h1, 10'h10};
-        // ins_mem['hc]<={7'h0, 5'h1, 5'h4, 5'h1, 10'h02};
-        // ins_mem['h10]<={7'h0, 5'h1, 5'h5, 5'h1, 10'h03};
+
+        fetch.ins_mem['h0]={7'h2, 5'h1, 5'h3, 5'h2, 10'h01};
+        fetch.ins_mem['h4]={7'h2, 5'h1, 5'h1, 5'h2, 10'h01};
+        fetch.ins_mem['h8]={7'h2, 5'h1, 5'h3, 5'h2, 10'h01};
 
         bank_reg.reg_file[1] = 1;
         bank_reg.reg_file[2] = 2;
@@ -117,10 +116,16 @@ module CPU_full_core_tb ();
         $display("fetch->decode");
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute.ra_value);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
-                //DEBUG
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
+        //DEBUG
         $display("commit wb: %h", commit_if.writeback.reg_write);
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
@@ -134,9 +139,18 @@ module CPU_full_core_tb ();
         $display("decode->alu");
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
+        $display("mul 0 wb: %h", mul_unit_if.mul_stages[0].writeback_mul);
+
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -151,9 +165,24 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
+        $display("mul 0 wb: %h", mul_unit_if.mul_stages[0].writeback_mul);
+        $display("mul 0 rd: %h", mul_unit_if.mul_stages[0].rd_id);
+
+        $display("hd mul 0 wb: %h", HDUnit_if.mul_wb[0].write_back);
+        $display("hd mul 0 rd: %h", HDUnit_if.mul_wb[0].rd_id);
+
+        $display("hd use: %h", HDUnit_if.ra_use);
+        $display("hd ra id: %h", HDUnit_if.decode_ra);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -168,9 +197,15 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -191,9 +226,15 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -207,9 +248,15 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -222,9 +269,15 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
@@ -238,13 +291,22 @@ module CPU_full_core_tb ();
         reset = 0;
         $display("PC value: %h", fetch.PC);
         $display("decode ins value: %h", decode_if.instr);
-        $display("alu ra data: %h", execute_if.ra_data);
-        $display("alu rb data: %h", execute.rb_value);
-        $display("alu result value: %h", commit_if.alu_result);
+        $display("mul ra data: %h", mul_unit_if.ra_data);
+        $display("mul rb data: %h", mul_unit_if.rb_data);
+        
+        $display("mul 0 data: %h", mul_unit_if.mul_stages[0]);
+        $display("mul 1 data: %h", mul_unit_if.mul_stages[1]);
+        $display("mul 2 data: %h", mul_unit_if.mul_stages[2]);
+        $display("mul 3 data: %h", mul_unit_if.mul_stages[3]);
+        $display("mul 4 data: %h", mul_unit_if.mul_stages[4]);
+
         $display("writeback reg_dest: %h", writeback_if.reg_dest);
         $display("reg_1 value: %h", bank_reg.reg_file[1]);
         $display("rb bypass: %h", FWUnit_if.rb_execute_bypass);
 
+        #20
+        $display("\n");
+        $display("reg_1 value: %h", bank_reg.reg_file[1]);
 
         $finish();
     end
