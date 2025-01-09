@@ -13,8 +13,9 @@
 module CPU_cache 
 #(
     parameter SIZE = `NUM_CACHE_LINES,
-    parameter LINE_WIDTH = `LINE_WIDTH,
-    parameter ADDR_WIDTH = `PHYSICAL_ADDR_WIDTH
+    parameter ADDR_WIDTH = `PHYSICAL_ADDR_WIDTH,
+    parameter BYTES_IN_INPUT = `WORD_WIDTH,
+    parameter BYTES_IN_LINE = `LINE_WIDTH/`BYTE_WIDTH
 )
 (
     input wire clock,
@@ -29,36 +30,32 @@ module CPU_cache
     CPU_cache_response_if.master cache_response,
     CPU_mem_bus_request_if.master mem_bus_request
 );
-
-    localparam BYTES_IN_LINE = LINE_WIDTH / `BYTE_WIDTH;
-    localparam HALFS_IN_LINE = LINE_WIDTH / `HALF_WIDTH;
-    localparam WORDS_IN_LINE = LINE_WIDTH / `WORD_WIDTH;
+    // Usefull variables
+    localparam BYTES_IN_HALF = `HALF_WIDTH/`BYTE_WIDTH;
     localparam BYTES_IN_WORD = `WORD_WIDTH / `BYTE_WIDTH;
+
     localparam HALFS_IN_WORD = `WORD_WIDTH / `HALF_WIDTH;
+
+    localparam HALFS_IN_LINE = BYTES_IN_LINE / BYTES_IN_HALF;
+    localparam WORDS_IN_LINE = BYTES_IN_LINE / BYTES_IN_WORD;
+
+    localparam DIRTIES_IN_BYTE = `BYTE_WIDTH/`BYTE_WIDTH;
+    localparam DIRTIES_IN_HALF = `HALF_WIDTH/`BYTE_WIDTH;
+    localparam DIRTIES_IN_WORD = `WORD_WIDTH/`BYTE_WIDTH;
+
+    // Usefull constants
 
     typedef enum logic [1:0] { INVALID, VALID, REQUESTED } line_state_e;
     typedef logic [ADDR_WIDTH-1:0] addr_t; 
 
-    typedef union {
-        logic [BYTES_IN_LINE-1:0][`BYTE_WIDTH/`BYTE_WIDTH-1:0] as_bytes;
-        logic [HALFS_IN_LINE-1:0][`HALF_WIDTH/`BYTE_WIDTH-1:0] as_halfs;
-        logic [WORDS_IN_LINE-1:0][`WORD_WIDTH/`BYTE_WIDTH-1:0] as_words;
-    } line_dirty_u;
-
-    typedef union {
-        logic [BYTES_IN_LINE-1:0][`BYTE_WIDTH-1:0] as_bytes;
-        logic [HALFS_IN_LINE-1:0][`HALF_WIDTH-1:0] as_halfs;
-        logic [WORDS_IN_LINE-1:0][`WORD_WIDTH-1:0] as_words;
-    } line_data_u;
-
     // Registers
 
-    line_state_e    _line_states    [SIZE];
-    line_dirty_u    _line_dirties   [SIZE];
-    addr_t          _line_addrs     [SIZE];
-    line_t          _line_datas     [SIZE];
+    line_state_e                            _line_states    [SIZE];
+    logic [BYTES_IN_LINE-1:0]               _line_dirties   [SIZE];
+    addr_t                                  _line_addrs     [SIZE];
+    logic [BYTES_IN_LINE*`BYTE_WIDTH-1:0]   _line_datas     [SIZE];
 
-    // Helpful logic declarations
+    // Helpfull wires 
 
     logic [$clog2(SIZE)-1:0]            _line_idx;
     logic [$clog2(BYTES_IN_LINE)-1:0]   _line_byte_idx;
@@ -68,6 +65,9 @@ module CPU_cache
     logic [$clog2(BYTES_IN_WORD)-1:0]   _word_byte_idx;
     logic [$clog2(HALFS_IN_WORD)-1:0]   _word_half_idx;
 
+    logic _valid_byte, _valid_half, _valid_word;
+    logic [$clog2(SIZE)-1:0] _mem_line_idx; 
+
     assign _line_idx        = cache_request.addr[WORDS_IN_LINE +: $clog2(SIZE)];
     assign _line_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_LINE)];
     assign _line_half_idx   = cache_request.addr[0 +: $clog2(HALFS_IN_LINE)];
@@ -76,21 +76,27 @@ module CPU_cache
     assign _word_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_WORD)];
     assign _word_half_idx   = cache_request.addr[0 +: $clog2(HALFS_IN_WORD)];
 
+    assign _valid_byte = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE]);
+    assign _valid_half = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF]);
+    assign _valid_word = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_word_idx*DIRTIES_IN_WORD +: DIRTIES_IN_WORD]);
+    assign _mem_line_idx = mem_bus_response.addr[0 +: $clog2(SIZE)];
+    
     // Storebuffer logic
 
     logic _sb_operation, _sb_pop, _sb_empty, _sb_full; 
-    logic [3:0] _sb_hit_bytes, _sb_hit_bytes_pop; 
-    addr_t _sb_tag_pop;
-    word_t _sb_data_pop, _sb_data_response;
+    logic [DIRTIES_IN_WORD-1:0] _sb_hit_bytes, _sb_hit_bytes_pop; 
+    logic [`WORD_WIDTH-1:0] _sb_data_pop, _sb_data_response;
     logic [SIZE-1:0] _sb_hit_lines;
+    addr_t _sb_tag_pop;
 
-    // write to sb is always available if the cache line is not invalid 
-    assign _sb_operation = cache_request.write 
-        && _line_addrs[_line_idx]  == cache_request.addr 
-        && _line_states[_line_idx] != INVALID;
+    assign _sb_operation = // write to sb is always available if the cache line is not invalid 
+        cache_request.write && 
+        _line_addrs[_line_idx]  == cache_request.addr && 
+        _line_states[_line_idx] != INVALID;
 
-    // data will be always pop unless we recieve data from main memory
-    assign _sb_pop = ~_sb_empty && ~mem_bus_response.valid;
+    assign _sb_pop = // data will be always pop unless we recieve data from main memory
+        ~_sb_empty && 
+        ~mem_bus_response.valid;
 
     CPU_storebuffer #(
         .SIZE(`STOREBUFFER_SIZE),
@@ -114,45 +120,37 @@ module CPU_cache
         .data_response(_sb_data_response)
     );
 
-     
-    wire _valid_byte; 
-    wire _valid_half; 
-    wire _valid_word;
-    assign _valid_byte = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx].as_bytes[_line_byte_idx]);
-    assign _valid_half = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx].as_halfs[_line_half_idx]);
-    assign _valid_word = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx].as_words[_line_word_idx]);
-    
     // READ logic
-    
-    typedef union {
-        logic [BYTES_IN_WORD-1:0] as_bytes;
-        logic [BYTES_IN_WORD/2-1:0] as_halfs;
-    } hit_bytes_u;
 
-    hit_bytes_u _bank_hit_bytes = 
+    logic [DIRTIES_IN_WORD-1:0] _bank_hit_bytes;
+    logic [`WORD_WIDTH-1:0] _bank_data;
+    logic [BYTES_IN_WORD-1:0] _read_hit_bytes;
+    logic [`WORD_WIDTH-1:0] _read_data;
+    logic _read_hit; 
+
+    assign _bank_data = _line_datas[_line_idx][_line_word_idx*`WORD_WIDTH +: `WORD_WIDTH];
+
+    assign _bank_hit_bytes = 
         BYTES_IN_WORD'(_line_states[_line_idx] == VALID) | 
-        (BYTES_IN_WORD'(_line_states[_line_idx] == REQUESTED) & _line_dirties[_line_idx].as_words[_line_word_idx]);
+        (BYTES_IN_WORD'(_line_states[_line_idx] == REQUESTED) & _line_dirties[_line_idx][_line_word_idx*DIRTIES_IN_WORD +: DIRTIES_IN_WORD]);
 
-    word_t _bank_data = _line_datas[_line_idx].as_words[_line_word_idx];
+    assign _read_hit_bytes = _bank_hit_bytes | _sb_hit_bytes;
 
-    
-
-    hit_bytes_u _read_hit_bytes = _bank_hit_bytes | _sb_hit_bytes;
-    word_t _read_data;
     for(genvar i=0; i<BYTES_IN_WORD; ++i) begin
-        assign _read_data.as_bytes[i] = 
-            (`BYTE_WIDTH'(_sb_hit_bytes[i]) & _sb_data_response.as_bytes[i]) | 
-            (`BYTE_WIDTH'(_sb_hit_bytes[i] && _bank_hit_bytes[i]) & _bank_data.as_bytes[i]);
+        assign _read_data[i*`BYTE_WIDTH +: `BYTE_WIDTH] = 
+            (`BYTE_WIDTH'(_sb_hit_bytes[i]) & _sb_data_response[i*`BYTE_WIDTH +: `BYTE_WIDTH]) | 
+            (`BYTE_WIDTH'(_sb_hit_bytes[i] && _bank_hit_bytes[i]) & _bank_data[i*`BYTE_WIDTH +: `BYTE_WIDTH]);
     end
 
-    wire _read_hit = 
-        cache_request.mode == BYTE && _read_hit_bytes.as_bytes[_word_byte_idx] || 
-        cache_request.mode == HALF && &_read_hit_bytes.as_halfs[_word_half_idx] || 
+    assign _read_hit = 
+        cache_request.mode == BYTE && _read_hit_bytes[_word_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE] || 
+        cache_request.mode == HALF && &_read_hit_bytes[_word_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF] || 
         cache_request.mode == WORD && &_read_hit_bytes;
 
     // WRITE logic
 
-    wire _write_hit = _line_states[_line_idx] != INVALID && (~_sb_full || _sb_pop);
+    logic _write_hit; 
+    assign _write_hit = _line_states[_line_idx] != INVALID && (~_sb_full || _sb_pop);
 
     // CACHE response logic
 
@@ -160,8 +158,8 @@ module CPU_cache
     logic [`WORD_WIDTH-1:0] _half_data;
     logic [`WORD_WIDTH-1:0] _word_data;
 
-    assign _byte_data = {{`WORD_WIDTH-`BYTE_WIDTH{'0}} , _read_data.as_bytes[_word_byte_idx]};
-    assign _half_data = {{`WORD_WIDTH-`HALF_WIDTH{'0}} , _read_data.as_halfs[_word_half_idx]};
+    assign _byte_data = {{`WORD_WIDTH-`BYTE_WIDTH{'0}} , _read_data[_word_byte_idx*`BYTE_WIDTH +: `BYTE_WIDTH]};
+    assign _half_data = {{`WORD_WIDTH-`HALF_WIDTH{'0}} , _read_data[_word_half_idx*`HALF_WIDTH +: `HALF_WIDTH]};
     assign _word_data = _read_data;
 
     assign cache_response.data = 
@@ -195,8 +193,6 @@ module CPU_cache
 
     // Registers logic
 
-    logic [$clog2(SIZE)-1:0] _mem_line_idx = mem_bus_response.addr[0 +: $clog2(SIZE)];
-
     always @(posedge clock) begin
         if (reset) begin
             for (int i=0; i < SIZE; ++i) begin
@@ -204,17 +200,26 @@ module CPU_cache
                 _line_dirties [i] <= '0;
             end
         end else begin
-            if (mem_bus_response.valid && cache_request.write && _mem_line_idx == _line_idx) begin
-                $error("Not supported write and flush to the same lane.");
+            // if (mem_bus_response.valid && cache_request.write && _mem_line_idx == _line_idx) begin
+            //     $error("Not supported write and flush to the same lane.");
+            // end
+
+            $display("hit data: rh: %h, rhb: %h, bhb %h, sbhb %h", _read_hit, _read_hit_bytes, _bank_hit_bytes, _sb_hit_bytes);
+
+            if (mem_bus_request.read) begin
+                _line_states[_line_idx] <= REQUESTED;
+            end else if (mem_bus_request.write) begin
+                _line_states[_line_idx] <= INVALID;
             end
 
             if (mem_bus_response.valid) begin
-                if (_line_states[_mem_line_idx] == INVALID) begin
-                    _line_datas[_mem_line_idx] <= mem_bus_response.data;
-                end else if (_line_states[_mem_line_idx] == INVALID) begin
+                // if (_line_states[_mem_line_idx] == INVALID) begin
+                //     _line_datas[_mem_line_idx] <= mem_bus_response.data;
+                // end else 
+                if (_line_states[_mem_line_idx] == REQUESTED) begin
                     for(int i=0; i<BYTES_IN_LINE; ++i) begin
-                        if (_line_dirties[_mem_line_idx].as_bytes[i]) begin
-                            _line_datas[_mem_line_idx].as_bytes[i] <= mem_bus_response.data.as_bytes[i];
+                        if (_line_dirties[_mem_line_idx][i*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE]) begin
+                            _line_datas[_mem_line_idx][i*`BYTE_WIDTH +: `BYTE_WIDTH] <= mem_bus_response.data[i*`BYTE_WIDTH +: `BYTE_WIDTH];
                         end
                     end
                 end else begin
@@ -228,8 +233,8 @@ module CPU_cache
             if (_sb_pop) begin
                 for(int i=0; i<BYTES_IN_WORD; ++i) begin
                     if (_sb_hit_bytes_pop[i]) begin
-                        _line_dirties[_sb_tag_pop[4 +: $clog2(SIZE)]].as_words[_sb_tag_pop[3:2]][i] <= 1;
-                        _line_datas  [_sb_tag_pop[4 +: $clog2(SIZE)]].as_words[_sb_tag_pop[3:2]].as_bytes[i] <= _sb_data_pop.as_bytes[i];
+                        _line_dirties[_sb_tag_pop[4 +: $clog2(SIZE)]][_sb_tag_pop[3:2]*DIRTIES_IN_WORD +: DIRTIES_IN_WORD][i] <= 1;
+                        _line_datas  [_sb_tag_pop[4 +: $clog2(SIZE)]][_sb_tag_pop[3:2]*`WORD_WIDTH +: `WORD_WIDTH][i*`BYTE_WIDTH +: `BYTE_WIDTH] <= _sb_data_pop[i*`BYTE_WIDTH +: `BYTE_WIDTH];
                     end
                 end
             end

@@ -11,7 +11,7 @@ INCLUDES = -I$(PROJ_PATH)/src/ -I$(PROJ_PATH)
 
 .PHONY: all clean
 
-CPU_cache_tb.exe: CPU_cache_tb.sv $(CACHE_PATH)/CPU_cache.sv
+CPU_cache_tb.exe: CPU_cache_tb.sv
 	verilator $(FLAGS) -o $@ $^ $(COMMON_FILES) $(INCLUDES)
 
 CPU_storebuffer_tb.exe: CPU_storebuffer_tb.sv

@@ -38,55 +38,73 @@ module CPU_cache_tb ();
         cache_request.write = '0;
         cache_request.addr = 'h0;
         cache_request.mode = WORD;
-        #20
-        `ASSERT_EQUAL(cache_response.hit, 0);
+        #10 // test wire, expect external component to catch
         `ASSERT_EQUAL(bus_request.read, 0);
         `ASSERT_EQUAL(bus_request.write, 0);
-        mem_bus_available = 1;
-        #20
+        #10 // test regs, 
         `ASSERT_EQUAL(cache_response.hit, 0);
+        mem_bus_available = 1;
+        #10 // test wire
         `ASSERT_EQUAL(bus_request.read, 1);
         `ASSERT_EQUAL(bus_request.write, 0);
         `ASSERT_EQUAL(bus_request.addr, 'h0);
-        #20
+        #10 // test reg
         `ASSERT_EQUAL(cache_response.hit, 0);
+        #10
         `ASSERT_EQUAL(bus_request.read, 0);
         `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 0);
         cache_request.read = 0;
         cache_request.write = 1;
         cache_request.data = 'h11223344;
-        mem_bus_response.valid = 1;
-        mem_bus_response.addr = 'h0;
-        mem_bus_response.data = 'hFFEEDDCCFFEEDDCCFFEEDDCCFFEEDDCC;
-        #20
-        `ASSERT_EQUAL(cache_response.hit, 1);
+        bus_response.valid = 1;
+        bus_response.addr = 'h0;
+        bus_response.data = `LINE_WIDTH'hFFEEDDCCFFEEDDCCFFEEDDCCFFEEDDCC;
+        #10
         `ASSERT_EQUAL(bus_request.read, 0);
         `ASSERT_EQUAL(bus_request.write, 0);
-        #20 
-        mem_response_if.valid = '1;
-        mem_response_if.addr = mem_request_if.addr;
-        mem_response_if.data = 128'hDDDDDDDDCCCCCCCCBBBBBBBBAAAAAAAA;
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        #20
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        #20
-        cache_request_if.addr = 'h4;
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        #20
-        cache_request_if.addr = 'h8;
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        #20
-        cache_request_if.addr = 'hc;
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        #20
-        $display("mem request. read: %b, write: %b, addr: %h", mem_request_if.read, mem_request_if.write, mem_request_if.addr);
-        $display("cache response. valid: %b, data: %h", cache_response_if.hit, cache_response_if.data);
-        $finish();
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        bus_response.valid = 0;
+        cache_request.data = 'h55;
+        cache_request.mode = BYTE;
+        #10
+        `ASSERT_EQUAL(bus_request.read, 0);
+        `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        cache_request.data = 'h66;
+        cache_request.addr = 'h1;
+        #10
+        `ASSERT_EQUAL(bus_request.read, 0);
+        `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        cache_request.read = 1;
+        cache_request.write = 0;
+        #10
+        `ASSERT_EQUAL(bus_request.read, 0);
+        `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        `ASSERT_EQUAL(cache_response.data, 'h66);
+        cache_request.addr = 'h0;
+        #10
+        `ASSERT_EQUAL(bus_request.read, 0);
+        `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        `ASSERT_EQUAL(cache_response.data, 'h55);
+        cache_request.mode = WORD;
+        #10
+        `ASSERT_EQUAL(bus_request.read, 0);
+        `ASSERT_EQUAL(bus_request.write, 0);
+        #10
+        `ASSERT_EQUAL(cache_response.hit, 1);
+        `ASSERT_EQUAL(cache_response.data, 'h11226655);
+
+        `SUCCESS;
     end
 
 endmodule

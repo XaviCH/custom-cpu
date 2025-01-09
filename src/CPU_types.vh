@@ -10,14 +10,16 @@ typedef struct packed {
 } half_t;
 
 typedef union {
-    byte_t [`WORD_WIDTH/`BYTE_WIDTH-1:0] as_bytes;
-    half_t [`WORD_WIDTH/`HALF_WIDTH-1:0] as_halfs;
+    byte_t  [`WORD_WIDTH/`BYTE_WIDTH-1:0]   as_bytes;
+    half_t  [`WORD_WIDTH/`HALF_WIDTH-1:0]   as_halfs;
+    logic   [`WORD_WIDTH-1:0]               as_word;
 } word_t;
 
 typedef union {
-    byte_t [`LINE_WIDTH/`BYTE_WIDTH-1:0] as_bytes;
-    half_t [`LINE_WIDTH/`HALF_WIDTH-1:0] as_halfs;
-    word_t [`LINE_WIDTH/`WORD_WIDTH-1:0] as_words;
+    byte_t  [`LINE_WIDTH/`BYTE_WIDTH-1:0]   as_bytes;
+    half_t  [`LINE_WIDTH/`HALF_WIDTH-1:0]   as_halfs;
+    word_t  [`LINE_WIDTH/`WORD_WIDTH-1:0]   as_words;
+    logic   [`LINE_WIDTH-1:0]               as_line;
 } line_t;
 
 `endif
