@@ -23,6 +23,9 @@ interface CPU_execute_if ();
     commit_t commit;
     execute_t execute;
 
+    logic tlb_write;
+    logic rm4;
+
     logic [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
     logic [`REG_WIDTH-1:0] ra_data;
     logic [`REG_WIDTH-1:0] rb_data;
@@ -43,7 +46,9 @@ interface CPU_execute_if ();
         output offset_data,
         output reg_dest,
         output ra_id,
-        output rb_id
+        output rb_id,
+        output tlb_write,
+        output rm4
     );
 
     modport slave (

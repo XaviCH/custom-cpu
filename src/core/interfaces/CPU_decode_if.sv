@@ -1,5 +1,5 @@
 `include "CPU_define.vh"
-
+`include "CPU_cache_types.svh"
 interface CPU_decode_if ();
 
     typedef enum logic[6:0] {
@@ -50,6 +50,11 @@ interface CPU_decode_if ();
     logic valid_instr;
     instr_t instr;
     logic nop;
+    tlb_exception_t tlb_exception;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] rm0;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] rm1;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] rm2;
+    logic rm4;
     
     modport master (
         output next_PC,
@@ -62,7 +67,10 @@ interface CPU_decode_if ();
         input next_PC,
         input valid_instr,
         input instr,
-        input nop
+        input nop,
+        output rm0,
+        output rm1,
+        output rm4
     );
 
 endinterface

@@ -21,10 +21,15 @@ assign bank_reg_if.read_reg_a = decode_if.instr.r_instr.src1;
 assign bank_reg_if.read_reg_b = decode_if.instr.r_instr.src2;
 
 //HAZARD READ AFTER LOAD
-assign HDUnit_if.ra_use = (decode_if.instr[31:29] == `R_TYPE_OP || (decode_if.instr[31:29] == `M_TYPE_OP && decode_if.instr[31:25] != `ISA_MOV_OP) || decode_if.instr[31:25] == `ISA_BEQ_OP || decode_if.instr[31:25] == `ISA_JUMP_OP || decode_if.instr[31:25] == `ISA_TLB_WRITE_OP);
 assign HDUnit_if.decode_ra = decode_if.instr.r_instr.src1;
+assign HDUnit_if.ra_use = (decode_if.instr[31:29] == `R_TYPE_OP || (decode_if.instr[31:29] == `M_TYPE_OP && decode_if.instr[31:25] != `ISA_MOV_OP) || decode_if.instr[31:25] == `ISA_BEQ_OP || decode_if.instr[31:25] == `ISA_JUMP_OP || decode_if.instr[31:25] == `ISA_TLB_WRITE_OP);
+
 assign HDUnit_if.rb_use = (decode_if.instr[31:29] == `R_TYPE_OP || decode_if.instr[31:25] == `ISA_BEQ_OP || decode_if.instr[31:25] == `ISA_TLB_WRITE_OP);
 assign HDUnit_if.decode_rb = decode_if.instr.r_instr.src2;
+
+
+assign HDUnit_if.decode_rd = decode_if.instr.r_instr.dst;
+assign HDUnit_if.rd_use = ((decode_if.instr[31:29] == `R_TYPE_OP && decode_if.instr[31:29] != `ISA_MUL_OP) || decode_if.instr[31:25] == `ISA_LDB_OP || decode_if.instr[31:25] == `ISA_LDW_OP);
 
 wire [`REG_WIDTH-1:0] ra_value_br;
 wire [`REG_WIDTH-1:0] rb_value_br;
@@ -69,11 +74,22 @@ always @(posedge clock) begin
         execute_if.ra_id <= decode_if.instr.r_instr.src1;
         execute_if.rb_id <= decode_if.instr.r_instr.src2;
 
+        execute_if.rm4 <= decode_if.rm4;
+
         execute_if.reg_dest <= decode_if.instr.r_instr.dst;
         if (HDUnit_if.stall || decode_if.nop) begin
             execute_if.commit <= '0;
             execute_if.writeback <= '0;
             mul_unit_if.writeback_mul<=0;
+        end else if (decode_if.tlb_exception.raise) begin
+            fetch_if.jump_PC <= `EXCEPTION_ADDR;
+            fetch_if.jump <= 1;
+            decode_if.rm0 <= decode_if.tlb_exception.pc;
+            decode_if.rm1 <= decode_if.tlb_exception.vaddr;
+            decode_if.rm4 <= 1;
+            decode_if.nop <= 1;
+
+            // TODO PUT ALL CONTROL TO 0
         //R_TYPE
         end else if (decode_if.instr[31:29] == `R_TYPE_OP) begin
             execute_if.execute.use_reg_b <= '1;
@@ -104,6 +120,9 @@ always @(posedge clock) begin
                 execute_if.commit.mem_write <= '1;
                 execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
+            end if (decode_if.instr.b_instr.opcode == `ISA_TLBWRITE_OP) begin
+                execute_if.tlb_write<=1;
+                //TODO: WHAT ABOUT DIFFERENT TYPES OF TLB WRITES?
             end
 
             if (decode_if.instr.b_instr.opcode == `ISA_STW_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
@@ -115,6 +134,13 @@ always @(posedge clock) begin
             end
         //BTYPE
         end else if (decode_if.instr[31:29]==`B_TYPE_OP) begin
+            if (decode_if.instr.b_instr.opcode == `ISA_IRET_OP)begin
+                fetch_if.jump_PC <= decode_if.rm0;
+                fetch_if.jump <= 1;
+                decode_if.nop <= 1;
+
+                decode_if.rm4<=0;
+            end
             execute_if.commit <= '0;
             execute_if.writeback <= '0;
             mul_unit_if.writeback_mul<=0;

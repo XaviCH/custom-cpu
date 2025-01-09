@@ -13,6 +13,8 @@ interface CPU_HDUnit_if ();
     wire ra_use;
     wire [$clog2(`NUM_REGS)-1:0] decode_rb;
     wire rb_use;
+    wire [$clog2(`NUM_REGS)-1:0] decode_rd;
+    wire rd_use;
 
     //BRANCH HAZARD EXECUTE
     wire branch_decode;
@@ -40,8 +42,11 @@ interface CPU_HDUnit_if ();
         input stall,
         output decode_ra,
         output ra_use,
+        output is_mul,
         output decode_rb,
         output rb_use,
+        output decode_rd,
+        output rd_use,
         output branch_decode,
         output jump_decode
     );
@@ -66,8 +71,11 @@ interface CPU_HDUnit_if ();
         input execute_rd,
         input decode_ra,
         input ra_use,
+        input is_mul,
         input decode_rb,
         input rb_use,
+        input decode_rd,
+        input rd_use,
         input branch_decode,
         input jump_decode,
         input commit_mem_read,

@@ -23,6 +23,14 @@ wire mul_raw_hazard_4 = HDUnit_if.ra_use && HDUnit_if.mul_wb[4].write_back && ((
 
 wire mul_raw_hazard = mul_raw_hazard_0 || mul_raw_hazard_1 || mul_raw_hazard_2 || mul_raw_hazard_3 || mul_raw_hazard_4;
 
-assign HDUnit_if.stall = read_load_hazard || br_hazard_alu || jump_hazard_alu || br_hazard_load || jump_hazard_load || mul_raw_hazard;
+wire mul_waw_hazard_0 = HDUnit_if.rd_use && HDUnit_if.mul_wb[0].write_back && (HDUnit_if.mul_wb[0].rd_id == HDUnit_if.decode_rd);
+wire mul_waw_hazard_1 = HDUnit_if.rd_use && HDUnit_if.mul_wb[1].write_back && (HDUnit_if.mul_wb[1].rd_id == HDUnit_if.decode_rd);
+wire mul_waw_hazard_2 = HDUnit_if.rd_use && HDUnit_if.mul_wb[2].write_back && (HDUnit_if.mul_wb[2].rd_id == HDUnit_if.decode_rd);
+wire mul_waw_hazard_3 = HDUnit_if.rd_use && HDUnit_if.mul_wb[3].write_back && (HDUnit_if.mul_wb[3].rd_id == HDUnit_if.decode_rd);
+wire mul_waw_hazard_4 = HDUnit_if.rd_use && HDUnit_if.mul_wb[4].write_back && (HDUnit_if.mul_wb[4].rd_id == HDUnit_if.decode_rd);
+
+wire mul_waw_hazard = mul_waw_hazard_0 || mul_waw_hazard_1 || mul_waw_hazard_2 || mul_waw_hazard_3 || mul_waw_hazard_4;
+
+assign HDUnit_if.stall = read_load_hazard || br_hazard_alu || jump_hazard_alu || br_hazard_load || jump_hazard_load || mul_raw_hazard || mul_waw_hazard;
 
 endmodule

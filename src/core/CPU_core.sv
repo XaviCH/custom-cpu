@@ -215,7 +215,7 @@ module CPU_core
 
             E_tlb_exception <= D_tlb_exception;
             E_tlb_write <= execute_if.tlb_write;
-            E_usermode <= execute_if.usermode_reg;
+            E_usermode <= execute_if.rm4;
             E_pc <= D_pc;
 
             C_tlb_exception <= E_tlb_exception;
