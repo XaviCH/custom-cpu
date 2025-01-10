@@ -67,4 +67,7 @@
 //MUL
 `define MUL_STAGES 5
 
+`define OFFSET_LOW_ITLB_WRITE 0
+`define OFFSET_LOW_DTLB_WRITE 1
+
 `endif

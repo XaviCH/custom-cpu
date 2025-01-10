@@ -15,6 +15,7 @@ module CPU_decode
     CPU_mul_unit_if.master_decode mul_unit_if,
     CPU_execute_if.master execute_if
 );
+
 //mem->wb
 
 assign bank_reg_if.read_reg_a = decode_if.instr.r_instr.src1;
@@ -82,13 +83,15 @@ always @(posedge clock) begin
             execute_if.writeback <= '0;
             mul_unit_if.writeback_mul<=0;
         end else if (decode_if.tlb_exception.raise) begin
-            fetch_if.jump_PC <= `EXCEPTION_ADDR;
-            fetch_if.jump <= 1;
+            // fetch_if.jump_PC <= `EXCEPTION_ADDR;
+            // fetch_if.jump <= 1;
             decode_if.rm0 <= decode_if.tlb_exception.pc;
             decode_if.rm1 <= decode_if.tlb_exception.vaddr;
             decode_if.rm4 <= 1;
             decode_if.nop <= 1;
-
+            execute_if.commit <= '0;
+            execute_if.writeback <= '0;
+            mul_unit_if.writeback_mul<=0;
             // TODO PUT ALL CONTROL TO 0
         //R_TYPE
         end else if (decode_if.instr[31:29] == `R_TYPE_OP) begin
@@ -110,24 +113,26 @@ always @(posedge clock) begin
             execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             mul_unit_if.writeback_mul<=0;
             //LOAD
-            if (decode_if.instr.b_instr.opcode== `ISA_LDB_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
+            if (decode_if.instr.m_instr.opcode== `ISA_LDB_OP || decode_if.instr.m_instr.opcode== `ISA_LDW_OP) begin
                 execute_if.commit.mem_read <= '1;
                 execute_if.commit.mem_write <= '0;
                 execute_if.writeback.mem_to_reg <= '1;
                 execute_if.writeback.reg_write <= '1;
             //STORE
-            end else if (decode_if.instr.b_instr.opcode== `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_STW_OP) begin
+            end else if (decode_if.instr.m_instr.opcode== `ISA_STB_OP || decode_if.instr.m_instr.opcode== `ISA_STW_OP) begin
                 execute_if.commit.mem_write <= '1;
                 execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
-            end if (decode_if.instr.b_instr.opcode == `ISA_TLBWRITE_OP) begin
-                execute_if.tlb_write<=1;
-                //TODO: WHAT ABOUT DIFFERENT TYPES OF TLB WRITES?
+            end else if (decode_if.instr.m_instr.opcode== `ISA_MOV_OP) begin
+                execute_if.offset_data <= 0;
+                execute_if.commit.mem_read <= '0;
+                execute_if.commit.mem_write <= '0;
+                execute_if.writeback.mem_to_reg <= '0;
+                execute_if.writeback.reg_write <= '1;
             end
-
-            if (decode_if.instr.b_instr.opcode == `ISA_STW_OP || decode_if.instr.b_instr.opcode== `ISA_LDW_OP) begin
+            if (decode_if.instr.m_instr.opcode == `ISA_STW_OP || decode_if.instr.m_instr.opcode== `ISA_LDW_OP) begin
                 execute_if.commit.mode <= WORD;
-            end else if (decode_if.instr.b_instr.opcode == `ISA_STB_OP || decode_if.instr.b_instr.opcode== `ISA_LDB_OP) begin
+            end else if (decode_if.instr.m_instr.opcode == `ISA_STB_OP || decode_if.instr.m_instr.opcode== `ISA_LDB_OP) begin
                 execute_if.commit.mode <= BYTE;
             end else begin
                 $error("No mode implemented in decode");
@@ -140,6 +145,14 @@ always @(posedge clock) begin
                 decode_if.nop <= 1;
 
                 decode_if.rm4<=0;
+            end else if (decode_if.instr.b_instr.opcode == `ISA_TLB_WRITE_OP) begin
+                decode_if.tlb_write.addr<=ra_value_br;
+                    decode_if.tlb_write.data<=rb_value_br;
+                if (decode_if.instr.b_instr.offset_low == `OFFSET_LOW_ITLB_WRITE) begin
+                    decode_if.itlb_write<=1;
+                end else if (decode_if.instr.b_instr.offset_low == `OFFSET_LOW_DTLB_WRITE) begin
+                    decode_if.tlb_write.enable<=1;
+                end          
             end
             execute_if.commit <= '0;
             execute_if.writeback <= '0;

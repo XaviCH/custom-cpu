@@ -18,22 +18,21 @@ module CPU_core
 
     // Pipeline registers
     logic [`VIRTUAL_ADDR_WIDTH-1:0] F_pc;
-    logic F_usermode;
 
-    logic D_nop;
-    tlb_exception_t D_tlb_exception;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] D_pc;
+    tlb_exception_t D_tlb_exception;
     logic [`INSTR_WIDTH-1:0] D_instr;
+    logic D_hit;
 
     tlb_exception_t E_tlb_exception;
-    logic E_tlb_write;
+    tlb_write_t E_tlb_write;
     cache_mode_e E_mode;
     logic E_usermode;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] E_pc;
 
     tlb_exception_t C_tlb_exception;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] C_pc;
-    logic C_tlb_write;
+    tlb_write_t C_tlb_write;
     cache_mode_e C_mode;
     logic C_usermode;
 
@@ -51,15 +50,21 @@ module CPU_core
     CPU_writeback_if writeback_if();
 
     assign fetch_if.pc = F_pc;
-    assign fetch_if.exception = ~commit_if.tlb_hit && C_usermode == `SUPERUSER_MODE;
-    
-    assign F_usermode = execute_if.usermode_reg;
+    assign fetch_if.exception = W_tlb_exception.raise;
+
+    assign fetch_if.tlb_enable = decode_it.rm4 != `SUPERUSER_MODE;
+    assign fetch_if.tlb_addr = decode_if.tlb_write.addr;
+    assign fetch_if.tlb_data = decode_if.tlb_write.data;
+    assign fetch_if.tlb_write = decode_if.itlb_write;
+
+    // assign F_usermode = decode_it.rm4; // usermode
     
     assign decode_if.commit.addr = commit_if.cache_addr;
     assign decode_if.commit.tlb_hit = commit_if.tlb_hit;
-    assign decode_if.nop = D_nop;
+    assign decode_if.nop = ~D_hit;
     assign decode_if.tlb_exception = W_tlb_exception;
 
+    assign E_tlb_write = decode_if.tlb_write;
     assign E_mode = execute_if.commit.mode;
     
     assign commit_if.write = commit_if.commit.mem_write; 
@@ -67,6 +72,11 @@ module CPU_core
     assign commit_if.mode = C_mode;
     assign commit_if.data = commit_if.rb_value;
     assign commit_if.addr = commit_if.alu_result;
+
+    assign commit_if.tlb_enable = C_usermode != `SUPERUSER_MODE;
+    assign commit_if.tlb_addr = C_tlb_write.addr;
+    assign commit_if.tlb_data = C_tlb_write.data;
+    assign commit_if.tlb_write = C_tlb_write.enable;
     
     // Memory interfaces
     CPU_mem_bus_request_if icache_mem_bus_request();
@@ -192,15 +202,15 @@ module CPU_core
     );
 
     // Registers logic
+    logic required_dcache;
+    logic required_dtlb;
+    assign required_dcache = C_read || C_write;
+    assign required_dtlb = required_dcache && commit_if.tlb_enable;
 
     always @(posedge clock) begin
-        if ((C_read || C_write) && ~commit_if.cache_hit) begin // dcache miss behaviour
-            if (~fetch_if.cache_hit) begin
-                D_nop <= 1;
-            end else begin
-                D_nop <= 0;
-            end
-            if (fetch_if.cache_hit && ~HDUnit.stall) begin
+        if (~(required_dcache && ~commit_if.cache_hit)) begin // dcache miss behaviour
+
+            if (fetch_if.cache_hit && ~HDUnit.stall /* <-- q es esto */) begin
                 F_pc <= fetch_if.next_pc;
             end
 
@@ -208,29 +218,27 @@ module CPU_core
                 D_instr <= fetch_if.instr;
             end
 
-            D_pc <= F_pc;
-            D_tlb_exception.raise <= ~fetch_if.tlb_hit && F_usermode != `SUPERUSER_MODE;
-            D_tlb_exception.vaddr <= fetch_if.tlb_addr;
-            D_tlb_exception.pc <= fetch_if.pc;
+            D_hit                   <= fetch_if.cache_hit;
+            D_tlb_exception.raise   <= ~fetch_if.tlb_hit && fetch_if.tlb_enable;
+            D_tlb_exception.vaddr   <= fetch_if.tlb_addr;
+            D_tlb_exception.pc      <= fetch_if.pc;
 
-            E_tlb_exception <= D_tlb_exception;
-            E_tlb_write <= execute_if.tlb_write;
-            E_usermode <= execute_if.rm4;
-            E_pc <= D_pc;
+            E_tlb_exception         <= D_tlb_exception;
+            E_usermode              <= decode_if.rm4;
 
-            C_tlb_exception <= E_tlb_exception;
-            C_pc <= E_pc;
-            C_usermode <= E_usermode;
-            C_mode <= E_mode;
-            C_tlb_write <= E_tlb_write;
+            C_tlb_exception         <= E_tlb_exception;
+            C_usermode              <= E_usermode;
+            C_mode                  <= E_mode;
+            C_tlb_write             <= E_tlb_write;
 
-            if (~commit_if.tlb_hit && C_usermode != `SUPERUSER_MODE) begin
-                W_tlb_exception.raise <= ~commit_if.tlb_hit && C_usermode != `SUPERUSER_MODE;
-                W_tlb_exception.vaddr <= commit_if.cache_addr;
-                W_tlb_exception.pc <= C_pc;
+            if (required_dtlb && ~commit_if.tlb_hit) begin
+                W_tlb_exception.raise   <= 1;
+                W_tlb_exception.vaddr   <= commit_if.cache_addr;
+                W_tlb_exception.pc      <= C_tlb_exception.pc;
             end else begin
                 W_tlb_exception <= C_tlb_exception;
             end
+
             W_write <= commit_if.writeback.write_enable && (~commit_if.writeback.mem_to_reg || commit_if.cache_hit);
             W_data <= commit_if.writeback.mem_to_reg ? commit_if.cache_data_out : C_addr;
             W_reg <= commit_if.reg_dest;

@@ -41,10 +41,9 @@ module CPU_fetch #(
         .key(fetch_request.tlb_addr),
         .value(fetch_request.tlb_data), 
         .write(fetch_request.tlb_write),
+        .hit(_tlb_hit),
         .out(_tlb_out)
     );
-
-    assign _tlb_hit = _tlb_out == cache_response.addr;
 
     assign cache_request.read = 1 && (_tlb_hit || ~fetch_request.tlb_enable);
     assign cache_request.write = 0; // Write not allowed on icache
@@ -61,11 +60,11 @@ module CPU_fetch #(
         .mem_bus_request(mem_bus_request)
     );
     
-    assign fetch_response.tlb_hit = _tlb_hit;
+    assign fetch_response.tlb_hit = _tlb_hit && _tlb_out == cache_response.addr;
     assign fetch_response.instr = cache_response.data;
     assign fetch_response.cache_hit = cache_response.hit;
 
-    always_latch begin
+    always begin
         if (reset) begin
             fetch_response.next_pc = `BOOT_ADDR;
         end else begin

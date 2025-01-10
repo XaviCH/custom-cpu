@@ -13,7 +13,7 @@ interface CPU_fetch_if ();
 
     modport request (
         input tlb_enable, tlb_write, tlb_addr, tlb_data,
-        input pc, exception
+        input pc, exception, jump, jump_pc
     );
 
     logic tlb_hit;

@@ -55,6 +55,9 @@ interface CPU_decode_if ();
     logic [`VIRTUAL_ADDR_WIDTH-1:0] rm1;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] rm2;
     logic rm4;
+
+    tlb_write_t tlb_write;
+    logic itlb_write;
     
     modport master (
         output next_PC,
@@ -68,9 +71,8 @@ interface CPU_decode_if ();
         input valid_instr,
         input instr,
         input nop,
-        output rm0,
-        output rm1,
-        output rm4
+        output rm0,rm1, rm4,
+        output tlb_write, itlb_write
     );
 
 endinterface
