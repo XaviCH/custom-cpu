@@ -2,9 +2,9 @@
 `include "CPU_types.vh"
 `include "cache/CPU_cache.sv"
 `include "cache/CPU_tlb.sv"
-`include "core/interfaces/CPU_commit_if"
-`include "cache/interfaces/CPU_mem_bus_request_if"
-`include "cache/interfaces/CPU_mem_bus_response_if"
+`include "core/interfaces/CPU_commit_if.sv"
+`include "cache/interfaces/CPU_mem_bus_request_if.sv"
+`include "cache/interfaces/CPU_mem_bus_response_if.sv"
 
 module CPU_commit #(
     parameter ADDR_WIDTH = `VIRTUAL_ADDR_WIDTH,
@@ -41,10 +41,9 @@ module CPU_commit #(
         .key(commit_request.tlb_addr),
         .value(commit_request.tlb_data), 
         .write(commit_request.tlb_write),
+        .hit(_tlb_hit),
         .out(_tlb_out)
     );
-
-    assign _tlb_hit = _tlb_out == cache_response.addr;
 
     assign cache_request.read = commit_request.cache_read && (_tlb_hit || ~commit_request.tlb_enable);
     assign cache_request.write = commit_request.cache_write && (_tlb_hit || ~commit_request.tlb_enable);
@@ -62,7 +61,7 @@ module CPU_commit #(
         .mem_bus_request(mem_bus_request)
     );
 
-    assign commit_response.tlb_hit = _tlb_hit;
+    assign commit_response.tlb_hit = _tlb_hit && _tlb_out == cache_response.addr;
     assign commit_response.cache_data_out = cache_response.data;
     assign commit_response.cache_hit = cache_response.hit;
 

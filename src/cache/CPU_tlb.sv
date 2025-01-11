@@ -1,3 +1,6 @@
+`ifndef CPU_TLB_SV
+`define CPU_TLB_SV
+
 `include "CPU_define.vh"
 `include "CPU_types.vh"
 
@@ -66,3 +69,5 @@ module CPU_tlb
     end
 
 endmodule
+
+`endif

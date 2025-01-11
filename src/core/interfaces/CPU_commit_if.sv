@@ -1,3 +1,6 @@
+`ifndef CPU_COMMIT_IF_SV
+`define CPU_COMMIT_IF_SV
+
 `include "CPU_define.vh"
 `include "cache/CPU_cache_types.svh"
 
@@ -59,3 +62,5 @@ interface CPU_commit_if ();
     );
 
 endinterface
+
+`endif

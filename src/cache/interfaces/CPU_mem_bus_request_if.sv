@@ -1,3 +1,6 @@
+`ifndef CPU_MEM_BUS_REQUEST_SV
+`define CPU_MEM_BUS_REQUEST_SV
+
 `include "CPU_define.vh"
 
 interface CPU_mem_bus_request_if #(
@@ -19,3 +22,5 @@ interface CPU_mem_bus_request_if #(
     );
 
 endinterface
+
+`endif

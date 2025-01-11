@@ -1,5 +1,5 @@
 `include "CPU_define.vh"
-`include "test/CPU_define_tb.svh"
+`include "test/CPU_define.svh"
 `include "cache/CPU_tlb.sv"
 
 module CPU_tlb_tb ();

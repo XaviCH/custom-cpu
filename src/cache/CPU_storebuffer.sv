@@ -1,3 +1,6 @@
+`ifndef CPU_STOREBUFFER_SV
+`define CPU_STOREBUFFER_SV
+
 `include "CPU_define.vh"
 `include "CPU_types.vh"
 `include "cache/CPU_cache_types.svh"
@@ -107,7 +110,6 @@ module CPU_storebuffer
                     _hit_lines[_tags[i][4 +: $clog2(NUM_LINES)]] = 1;
                 end
             end
-            //_datas_response <= _datas[_idx_ffm];
             if (operation == PUSH) begin
                 if (~pop) begin
                     if (_n_elem == SIZE) begin
@@ -121,24 +123,19 @@ module CPU_storebuffer
                     _datas[_n_elem[0 +: SIZE_WIDTH]] <= _data_in;
                     _dirty_bytes[_n_elem[0 +: SIZE_WIDTH]] <= _dirty_byte;
                 end else begin
-                    
                     _tags[_n_elem-1] <= _tag_in;
                     _datas[_n_elem-1] <= _data_in;
                     _dirty_bytes[_n_elem-1] <= _dirty_byte;
                 end
                 _empty <= 0;
-            end
-            if (pop) begin
-                if (_n_elem == 0) begin
+            end else if (pop) begin
+                if (_n_elem == 1) begin
+                    _empty <= 1;
+                end else if (_n_elem == 0) begin
                     $error("Error, trying to pop an empty queue.");
                 end
-                if (operation != PUSH) begin
-                    _n_elem <= _n_elem - 1;
-                    _full <= 0;
-                    if (_n_elem == 1) begin
-                        _empty <= 1;
-                    end                        
-                end
+                _n_elem <= _n_elem - 1;
+                _full <= 0;
                 for (int i=0; i < SIZE-1; ++i) begin
                     _tags[i] <= _tags[i+1];
                     _datas[i] <= _datas[i+1];
@@ -149,3 +146,5 @@ module CPU_storebuffer
     end
 
 endmodule
+
+`endif
