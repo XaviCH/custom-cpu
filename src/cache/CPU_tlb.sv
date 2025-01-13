@@ -5,37 +5,36 @@
 `include "CPU_types.vh"
 
 /**
-    TLB FIFO
+    TLB 
+    FIFO, on write do not check if entry is in the queue, UB if does.
 */
 module CPU_tlb
 #(
-    parameter SIZE = `NUM_TLB_ENTRIES,
-    parameter KEY_WIDTH = `VIRTUAL_ADDR_WIDTH-$clog2(`PAGE_SIZE),
-    parameter VALUE_WIDTH = `PHYSICAL_ADDR_WIDTH-$clog2(`PAGE_SIZE)
+    parameter SIZE          = `NUM_TLB_ENTRIES,
+    parameter KEY_WIDTH     = `VIRTUAL_ADDR_WIDTH  - $clog2(`PAGE_SIZE),
+    parameter VALUE_WIDTH   = `PHYSICAL_ADDR_WIDTH - $clog2(`PAGE_SIZE)
 )
 (
-    input wire clock,
-    input wire reset,
+    input logic clock,
+    input logic reset,
 
-    // input
-    input wire [KEY_WIDTH-1:0] key,
-    input wire [VALUE_WIDTH-1:0] value, 
-    input wire write,
+    input logic write,
+    input logic [KEY_WIDTH-1:0] key,
+    input logic [VALUE_WIDTH-1:0] value, 
 
-    output wire hit,
-    output wire [VALUE_WIDTH-1:0] out
+    output logic hit,
+    output logic [VALUE_WIDTH-1:0] out
 );
-    typedef logic [KEY_WIDTH-1:0] tlb_key_t; 
-    typedef logic [VALUE_WIDTH-1:0] tlb_value_t; 
+    // Registers
 
-    tlb_key_t _keys [SIZE];
-    tlb_value_t _values [SIZE];
-    logic _valids [SIZE];
+    logic                   _valids [SIZE];
+    logic [KEY_WIDTH-1:0]   _keys   [SIZE];
+    logic [VALUE_WIDTH-1:0] _values [SIZE];
 
     // READ logic
 
-    wire [SIZE-1:0] _cmps;
-    wire [VALUE_WIDTH-1:0] _cmps_keys [SIZE];
+    wire [SIZE-1:0]         _cmps;
+    wire [VALUE_WIDTH-1:0]  _cmps_keys [SIZE];
 
     for(genvar i=0; i<SIZE; ++i) begin : gen_cmps
         assign _cmps[i] = key == _keys[i] && _valids[i];
@@ -57,13 +56,13 @@ module CPU_tlb
         end else begin
             if (write) begin
                 for(int i=0; i < SIZE-1; ++i) begin
-                    _valids[i+1] <= _valids[i];
-                    _keys[i+1] <= _keys[i];
-                    _values[i+1] <= _values[i];
+                    _valids [i+1] <= _valids[i];
+                    _keys   [i+1] <= _keys[i];
+                    _values [i+1] <= _values[i];
                 end
-                _valids[0] <= 1;
-                _keys[0] <= key;
-                _values[0] <= value;
+                _valids [0] <= 1;
+                _keys   [0] <= key;
+                _values [0] <= value;
             end
         end
     end

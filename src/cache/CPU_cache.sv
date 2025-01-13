@@ -17,12 +17,12 @@ module CPU_cache
 #(
     parameter SIZE = `NUM_CACHE_LINES,
     parameter ADDR_WIDTH = `PHYSICAL_ADDR_WIDTH,
-    parameter BYTES_IN_INPUT = `WORD_WIDTH,
+    //parameter BYTES_IN_INPUT = `WORD_WIDTH,
     parameter BYTES_IN_LINE = `LINE_WIDTH/`BYTE_WIDTH
 )
 (
-    input wire clock,
-    input wire reset,
+    input logic clock,
+    input logic reset,
 
     // input
     CPU_cache_request_if.slave cache_request,
@@ -34,22 +34,19 @@ module CPU_cache
     CPU_mem_bus_request_if.master mem_bus_request
 );
     // Usefull variables
-    localparam BYTES_IN_HALF = `HALF_WIDTH/`BYTE_WIDTH;
+    // localparam BYTES_IN_HALF = `HALF_WIDTH/`BYTE_WIDTH;
     localparam BYTES_IN_WORD = `WORD_WIDTH / `BYTE_WIDTH;
 
     localparam HALFS_IN_WORD = `WORD_WIDTH / `HALF_WIDTH;
 
-    localparam HALFS_IN_LINE = BYTES_IN_LINE / BYTES_IN_HALF;
+    // localparam HALFS_IN_LINE = BYTES_IN_LINE / BYTES_IN_HALF;
     localparam WORDS_IN_LINE = BYTES_IN_LINE / BYTES_IN_WORD;
 
     localparam DIRTIES_IN_BYTE = `BYTE_WIDTH/`BYTE_WIDTH;
     localparam DIRTIES_IN_HALF = `HALF_WIDTH/`BYTE_WIDTH;
     localparam DIRTIES_IN_WORD = `WORD_WIDTH/`BYTE_WIDTH;
 
-    // Usefull constants
-
     typedef enum logic [1:0] { INVALID, VALID, REQUESTED } line_state_e;
-    typedef logic [ADDR_WIDTH-1:0] addr_t; 
 
     // Registers
 
@@ -61,37 +58,40 @@ module CPU_cache
     // Helpfull wires 
 
     logic [$clog2(SIZE)-1:0]            _line_idx;
-    logic [$clog2(BYTES_IN_LINE)-1:0]   _line_byte_idx;
-    logic [$clog2(HALFS_IN_LINE)-1:0]   _line_half_idx;
+    //logic [$clog2(BYTES_IN_LINE)-1:0]   _line_byte_idx;
+    //logic [$clog2(HALFS_IN_LINE)-1:0]   _line_half_idx;
     logic [$clog2(WORDS_IN_LINE)-1:0]   _line_word_idx;
 
     logic [$clog2(BYTES_IN_WORD)-1:0]   _word_byte_idx;
     logic [$clog2(HALFS_IN_WORD)-1:0]   _word_half_idx;
 
-    logic _valid_byte, _valid_half, _valid_word;
+    // logic _valid_byte, _valid_half, _valid_word;
     logic [$clog2(SIZE)-1:0] _mem_line_idx; 
 
     assign _line_idx        = cache_request.addr[$clog2(BYTES_IN_LINE) +: $clog2(SIZE)];
-    assign _line_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_LINE)];
-    assign _line_half_idx   = cache_request.addr[$clog2(BYTES_IN_HALF) +: $clog2(HALFS_IN_LINE)];
+    //assign _line_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_LINE)];
+    //assign _line_half_idx   = cache_request.addr[$clog2(BYTES_IN_HALF) +: $clog2(HALFS_IN_LINE)];
     assign _line_word_idx   = cache_request.addr[$clog2(BYTES_IN_WORD) +: $clog2(WORDS_IN_LINE)];
 
     assign _word_byte_idx   = cache_request.addr[0 +: $clog2(BYTES_IN_WORD)];
     assign _word_half_idx   = cache_request.addr[0 +: $clog2(HALFS_IN_WORD)];
 
-    assign _valid_byte = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE]);
-    assign _valid_half = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF]);
-    assign _valid_word = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_word_idx*DIRTIES_IN_WORD +: DIRTIES_IN_WORD]);
+    // assign _valid_byte = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE]);
+    // assign _valid_half = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF]);
+    // assign _valid_word = _line_states[_line_idx] == VALID || (_line_states[_line_idx] == REQUESTED && &_line_dirties[_line_idx][_line_word_idx*DIRTIES_IN_WORD +: DIRTIES_IN_WORD]);
     assign _mem_line_idx = mem_bus_response.addr[0 +: $clog2(SIZE)];
     
     // Storebuffer logic
+    // TODO: maybe replace it to an interface?
 
     logic _sb_operation, _sb_pop, _sb_empty, _sb_full; 
     logic [DIRTIES_IN_WORD-1:0] _sb_hit_bytes, _sb_hit_bytes_pop; 
     logic [`WORD_WIDTH-1:0] _sb_data_pop, _sb_data_response;
     logic [SIZE-1:0] _sb_hit_lines;
-    addr_t _sb_tag_pop;
-
+    // TODO: make it more suited
+    /* verilator lint_off UNUSEDSIGNAL */
+    logic [ADDR_WIDTH-1:0] _sb_tag_pop;
+    /* verilator lint_on UNUSEDSIGNAL */
     assign _sb_operation = // write to sb is always available if the cache line is not invalid 
         cache_request.write && 
         _line_states[_line_idx] != INVALID &&
@@ -101,11 +101,7 @@ module CPU_cache
         ~_sb_empty && 
         ~mem_bus_response.valid;
 
-    CPU_storebuffer #(
-        .SIZE(`STOREBUFFER_SIZE),
-        .TAG_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(`WORD_WIDTH)
-    ) storebuffer (
+    CPU_storebuffer storebuffer (
         .clock(clock),
         .reset(reset),
         .operation(_sb_operation),

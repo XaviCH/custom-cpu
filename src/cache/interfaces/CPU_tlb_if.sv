@@ -1,21 +1,17 @@
 `include "CPU_define.vh"
 
+typedef enum {
+    READ, WRITE
+} CPU_tlb_operation_t;
+
 interface CPU_tlb_if 
 #(
     parameter KEY_WIDTH = `VIRTUAL_ADDR_WIDTH-$clog2(`PAGE_SIZE),
     parameter VALUE_WIDTH = `PHYSICAL_ADDR_WIDTH-$clog2(`PAGE_SIZE)
-)
-();
+) ();
 
-    typedef enum {
-        READ, WRITE
-    } tlb_operation_t;
-
-    typedef logic [KEY_WIDTH-1:0] tlb_key_t; 
-    typedef logic [VALUE_WIDTH-1:0] tlb_value_t; 
-
-    tlb_key_t key,
-    tlb_value_t value;
+    logic [KEY_WIDTH-1:0] key;
+    logic [VALUE_WIDTH-1:0] value;
     tlb_operation_t operation;
 
     modport master (
