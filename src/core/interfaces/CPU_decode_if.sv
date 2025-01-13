@@ -1,5 +1,9 @@
+`ifndef CPU_DECODE_IF_SV
+`define CPU_DECODE_IF_SV
+
 `include "CPU_define.vh"
-`include "CPU_cache_types.svh"
+`include "cache/CPU_cache_types.svh"
+
 interface CPU_decode_if ();
 
     typedef enum logic[6:0] {
@@ -58,7 +62,7 @@ interface CPU_decode_if ();
 
     tlb_write_t tlb_write;
     logic itlb_write;
-    
+
     modport master (
         output next_PC,
         output valid_instr,
@@ -71,8 +75,11 @@ interface CPU_decode_if ();
         input valid_instr,
         input instr,
         input nop,
+        input tlb_exception,
         output rm0,rm1, rm4,
         output tlb_write, itlb_write
     );
 
 endinterface
+
+`endif

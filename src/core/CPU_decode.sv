@@ -1,4 +1,12 @@
 `include "CPU_define.vh"
+`include "core/interfaces/CPU_fetch_if.sv"
+`include "core/interfaces/CPU_decode_if.sv"
+`include "core/interfaces/CPU_execute_if.sv"
+`include "bank_reg/CPU_bank_reg_if.sv"
+`include "forward_unit/CPU_FWUnit_if.sv"
+`include "hazard_det_unit/CPU_HDUnit_if.sv"
+`include "mul_unit/CPU_mul_unit_if.sv"
+
 
 module CPU_decode
 (
@@ -11,9 +19,10 @@ module CPU_decode
     // input
     CPU_decode_if.slave decode_if,
     // ouput
-    CPU_fetch_if.master fetch_if,
+    CPU_fetch_if.decode_req fetch_if,
     CPU_mul_unit_if.master_decode mul_unit_if,
-    CPU_execute_if.master execute_if
+    CPU_execute_if.master execute_if,
+    output wire offload
 );
 
 //mem->wb
@@ -53,18 +62,35 @@ wire [`VIRTUAL_ADDR_WIDTH-1:0] jump_offset;
 assign branch_offset = {{17{decode_if.instr.b_instr.offset_high[4]}}, decode_if.instr.b_instr.offset_high, decode_if.instr.b_instr.offset_low} << 2;
 assign jump_offset = {{12{decode_if.instr.b_instr.offset_high[4]}}, decode_if.instr.b_instr.offset_high, decode_if.instr.b_instr.src2_offset_m, decode_if.instr.b_instr.offset_low};
 
-assign fetch_if.jump_PC = decode_if.instr.b_instr.opcode== `ISA_BEQ_OP ? decode_if.next_PC + branch_offset : ra_value_br + jump_offset;
 
 //CHECK IF CHANGING
-assign fetch_if.jump = (decode_if.instr.b_instr.opcode== `ISA_BEQ_OP && ra_value_br == rb_value_br) || decode_if.instr.b_instr.opcode== `ISA_JUMP_OP;
+
+
+always @(decode_if.instr.b_instr.opcode) begin
+    if (decode_if.instr.b_instr.opcode == `ISA_JUMP_OP) begin
+        fetch_if.jump <= 1;
+        fetch_if.jump_pc <= ra_value_br + jump_offset;
+    end else if(decode_if.instr.b_instr.opcode == `ISA_BEQ_OP && ra_value_br == rb_value_br) begin
+        fetch_if.jump <= 1;
+        fetch_if.jump_pc <= decode_if.next_PC + branch_offset;
+    end else if (decode_if.instr.b_instr.opcode == `ISA_IRET_OP) begin
+        fetch_if.jump <= 1;
+        fetch_if.jump_pc <= decode_if.rm0;
+    end else begin
+        fetch_if.jump <= 0;
+    end
+end
+
 
 
 //HAZARD BRANCHING
+assign HDUnit_if.stall_decode = decode_if.tlb_exception.raise;
 
 always @(posedge clock) begin
     if (reset) begin 
         execute_if.commit <= '0;
         execute_if.writeback.reg_write <= '0;
+        offload <= 0;
     end else begin
         //PASS VALUES
         execute_if.next_PC <= decode_if.next_PC;
@@ -88,7 +114,7 @@ always @(posedge clock) begin
             decode_if.rm0 <= decode_if.tlb_exception.pc;
             decode_if.rm1 <= decode_if.tlb_exception.vaddr;
             decode_if.rm4 <= 1;
-            decode_if.nop <= 1;
+            
             execute_if.commit <= '0;
             execute_if.writeback <= '0;
             mul_unit_if.writeback_mul<=0;
@@ -140,14 +166,10 @@ always @(posedge clock) begin
         //BTYPE
         end else if (decode_if.instr[31:29]==`B_TYPE_OP) begin
             if (decode_if.instr.b_instr.opcode == `ISA_IRET_OP)begin
-                fetch_if.jump_PC <= decode_if.rm0;
-                fetch_if.jump <= 1;
-                decode_if.nop <= 1;
-
-                decode_if.rm4<=0;
+                decode_if.rm4 <= 0;
             end else if (decode_if.instr.b_instr.opcode == `ISA_TLB_WRITE_OP) begin
                 decode_if.tlb_write.addr<=ra_value_br;
-                    decode_if.tlb_write.data<=rb_value_br;
+                    decode_if.tlb_write.data <= rb_value_br[`PHYSICAL_ADDR_WIDTH-1:0];
                 if (decode_if.instr.b_instr.offset_low == `OFFSET_LOW_ITLB_WRITE) begin
                     decode_if.itlb_write<=1;
                 end else if (decode_if.instr.b_instr.offset_low == `OFFSET_LOW_DTLB_WRITE) begin
@@ -158,7 +180,11 @@ always @(posedge clock) begin
             execute_if.writeback <= '0;
             mul_unit_if.writeback_mul<=0;
         end
-        // TODO Make others
+
+        if (decode_if.instr[31:25] == `ISA_STOP_OP) begin
+            offload <= 1;
+        end
+
     end
 
 end

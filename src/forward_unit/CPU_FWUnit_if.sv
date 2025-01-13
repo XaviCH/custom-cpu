@@ -1,3 +1,6 @@
+`ifndef CPU_FWUNIT_IF_SV
+`define CPU_FWUNIT_IF_SV
+
 `include "CPU_define.vh"
 
 interface CPU_FWUnit_if ();
@@ -93,3 +96,5 @@ interface CPU_FWUnit_if ();
     );
 
 endinterface
+
+`endif

@@ -48,7 +48,7 @@ module CPU_fetch #(
     assign cache_request.read = 1 && (_tlb_hit || ~fetch_request.tlb_enable);
     assign cache_request.write = 0; // Write not allowed on icache
     assign cache_request.mode = WORD; //
-    assign cache_request.addr = fetch_request.pc;
+    assign cache_request.addr = fetch_request.pc[`PHYSICAL_ADDR_WIDTH-1:0];
 
     CPU_cache cache (
         .clock(clock),

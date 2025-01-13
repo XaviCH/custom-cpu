@@ -2,9 +2,6 @@
 
 module CPU_HDUnit
 (
-    input wire clock,
-    input wire reset,
-    
     CPU_HDUnit_if.slave HDUnit_if
 );
 

@@ -1,3 +1,11 @@
+`include "CPU_define.vh"
+`include "core/interfaces/CPU_commit_if.sv"
+`include "core/interfaces/CPU_execute_if.sv"
+`include "bank_reg/CPU_bank_reg_if.sv"
+`include "forward_unit/CPU_FWUnit_if.sv"
+`include "hazard_det_unit/CPU_HDUnit_if.sv"
+`include "mul_unit/CPU_mul_unit_if.sv"
+
 module CPU_execute
 (
     input wire clock,
@@ -10,8 +18,7 @@ module CPU_execute
     CPU_FWUnit_if.master_execute FWUnit_if,
     CPU_HDUnit_if.master_execute HDUnit_if,
     CPU_mul_unit_if.master_execute mul_unit_if,
-    CPU_commit_if.master commit_if,
-    CPU_writeback_if.master write_back
+    CPU_commit_if.master commit_if
 );
 
 wire [`REG_WIDTH-1:0] ra_value;

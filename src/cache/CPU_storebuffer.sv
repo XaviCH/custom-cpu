@@ -52,7 +52,9 @@ module CPU_storebuffer
     logic [NUM_LINES-1:0]   _hit_lines;
     //logic [DATA_WIDTH-1:0]  _datas_response;
 
+    
     // Request logic
+
 
     logic [BYTES_IN_DATA-1:0] _cmp_hit [SIZE];
     logic [DATA_WIDTH-1:0] _data_response;
@@ -78,6 +80,7 @@ module CPU_storebuffer
 
     // Queue logic
 
+    assign hit_lines = _hit_lines;
     assign hit_bytes_pop = _dirty_bytes[0];
     assign tag_pop = _tags[0];
     assign data_pop = _datas[0];
@@ -107,7 +110,7 @@ module CPU_storebuffer
         end else begin
             for(int i=0; i < NUM_LINES; ++i) begin
                 if (i < _n_elem) begin
-                    _hit_lines[_tags[i][4 +: $clog2(NUM_LINES)]] = 1;
+                    _hit_lines[_tags[i][4 +: $clog2(NUM_LINES)]] <= 1;
                 end
             end
             if (operation == PUSH) begin

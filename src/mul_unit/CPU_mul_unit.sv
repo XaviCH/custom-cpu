@@ -1,11 +1,13 @@
 `include "CPU_define.vh"
+`include "bank_reg/CPU_bank_reg_if.sv"
+`include "hazard_det_unit/CPU_HDUnit_if.sv"
 
 module CPU_mul_unit
 (
     input wire clock,
     input wire reset,
     
-    CPU_writeback_if.master_mul writeback_if,
+    CPU_bank_reg_if.master_write bank_reg,
     CPU_HDUnit_if.master_mul HDUnit_if,
     CPU_mul_unit_if.slave mul_unit_if
 );
@@ -35,7 +37,7 @@ always @(posedge clock, posedge reset) begin
     if (reset) begin 
         for (i=0; i<`MUL_STAGES; i=i+1) mul_unit_if.mul_stages[i] <= 0;
     end else begin
-        writeback_if.writeback_mul <= mul_unit_if.mul_stages[4];
+        bank_reg.writeback_mul <= mul_unit_if.mul_stages[4];
         mul_unit_if.mul_stages[4]<=mul_unit_if.mul_stages[3];
         mul_unit_if.mul_stages[3]<=mul_unit_if.mul_stages[2];
         mul_unit_if.mul_stages[2]<=mul_unit_if.mul_stages[1];

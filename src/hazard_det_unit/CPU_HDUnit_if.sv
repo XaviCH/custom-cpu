@@ -1,3 +1,6 @@
+`ifndef CPU_HDUNIT_IF_SV
+`define CPU_HDUNIT_IF_SV
+
 `include "CPU_define.vh"
 
 interface CPU_HDUnit_if ();
@@ -33,6 +36,9 @@ interface CPU_HDUnit_if ();
 
     wire stall;
 
+    wire is_mul;
+
+    wire stall_decode;
 
     modport master_fetch(
         input stall
@@ -40,6 +46,7 @@ interface CPU_HDUnit_if ();
 
     modport master_decode(
         input stall,
+        output stall_decode,
         output decode_ra,
         output ra_use,
         output is_mul,
@@ -86,3 +93,5 @@ interface CPU_HDUnit_if ();
     );
 
 endinterface
+
+`endif

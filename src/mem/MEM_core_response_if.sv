@@ -1,3 +1,6 @@
+`ifndef MEM_CORE_RESPONSE_IF_SV
+`define MEM_CORE_RESPONSE_IF_SV
+
 `include "CPU_define.vh"
 
 interface MEM_core_response_if ();
@@ -17,3 +20,5 @@ interface MEM_core_response_if ();
     );
 
 endinterface
+
+`endif

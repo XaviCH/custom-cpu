@@ -58,6 +58,7 @@
 
 `define ISA_TLB_WRITE_OP 'h32
 `define ISA_IRET_OP 'h33
+`define ISA_STOP_OP 'h34
 
 // MEM 
 `define STOREBUFFER_SIZE 10

@@ -2,9 +2,6 @@
 
 module CPU_FWUnit
 (
-    input wire clock,
-    input wire reset,
-    
     CPU_FWUnit_if.slave FWUnit_if
 );
 

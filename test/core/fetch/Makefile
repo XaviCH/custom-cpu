@@ -1,14 +1,18 @@
 PROJ_PATH = ../../..
-CORE_PATH = $(PROJ_PATH)/src/core
+CACHE_PATH = $(PROJ_PATH)/src/cache
+LIB_PATH = $(PROJ_PATH)/src/lib
+CACHE_INTERFACES_PATH = $(CACHE_PATH)/interfaces
 
-FLAGS = --binary -j 0 #-Wall
-INCLUDES = -I$(PROJ_PATH)/src/
-COMMON_FILES = $(CORE_PATH)/CPU_decode_if $(CORE_PATH)/CPU_commit_if
+FLAGS = --binary -j 0
+INCLUDES = -I$(PROJ_PATH)/src/ -I$(PROJ_PATH)
+# COMMON_FILES = \
+	$(CACHE_INTERFACES_PATH)/CPU_cache_request_if $(CACHE_INTERFACES_PATH)/CPU_cache_response_if \
+	$(CACHE_INTERFACES_PATH)/CPU_cache_mem_request_if $(CACHE_INTERFACES_PATH)/CPU_cache_mem_response_if
 
 .PHONY: all clean
 
-CPU_fetch_tb.exe: CPU_fetch_tb.sv $(CORE_PATH)/CPU_fetch.sv
-	verilator $(FLAGS) -o $@ $^ $(COMMON_FILES) $(INCLUDES)
+CPU_fetch_tb.exe: CPU_fetch_tb.sv
+	verilator $(FLAGS) -o $@ $< $(INCLUDES)
 
 all: CPU_fetch_tb.exe
 

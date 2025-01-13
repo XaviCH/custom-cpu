@@ -139,7 +139,7 @@ module CPU_cache
 
     assign _read_hit_bytes = _bank_hit_bytes | _sb_hit_bytes;
 
-    for(genvar i=0; i<BYTES_IN_WORD; ++i) begin
+    for(genvar i=0; i<BYTES_IN_WORD; ++i) begin : gen_read_data
         assign _read_data[i*`BYTE_WIDTH +: `BYTE_WIDTH] = 
             ({`BYTE_WIDTH{1'(_sb_hit_bytes[i])}} & _sb_data_response[i*`BYTE_WIDTH +: `BYTE_WIDTH]) | 
             ({`BYTE_WIDTH{1'(~_sb_hit_bytes[i] && _bank_hit_bytes[i])}} & _bank_data[i*`BYTE_WIDTH +: `BYTE_WIDTH]);

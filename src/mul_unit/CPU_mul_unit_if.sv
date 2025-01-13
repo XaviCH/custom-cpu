@@ -1,3 +1,6 @@
+`ifndef CPU_MUL_UNIT_IF_SV
+`define CPU_MUL_UNIT_IF_SV
+
 `include "CPU_define.vh"
 
 interface CPU_mul_unit_if ();
@@ -33,3 +36,5 @@ interface CPU_mul_unit_if ();
     );
 
 endinterface
+
+`endif

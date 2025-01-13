@@ -1,3 +1,6 @@
+`ifndef CPU_BANK_REG_IF_SV
+`define CPU_BANK_REG_IF_SV
+
 `include "CPU_define.vh"
 
 interface CPU_bank_reg_if ();
@@ -8,9 +11,13 @@ interface CPU_bank_reg_if ();
     wire [`REG_WIDTH-1:0] write_data;
     wire write_enable;
 
-    wire [$clog2(`NUM_REGS)-1:0] write_reg_mul;
-    wire [`REG_WIDTH-1:0] write_data_mul;
-    wire write_enable_mul;
+    typedef struct packed {
+        logic write_enable_mul;
+        logic [$clog2(`NUM_REGS)-1:0] write_reg_mul;
+        logic [`REG_WIDTH-1:0] write_data_mul;
+    } writeback_mul_t;
+
+    writeback_mul_t writeback_mul;
 
     wire [`REG_WIDTH-1:0] read_data_a;
     wire [`REG_WIDTH-1:0] read_data_b;
@@ -26,9 +33,7 @@ interface CPU_bank_reg_if ();
         output write_reg,
         output write_data,
         output write_enable,
-        output write_reg_mul,
-        output write_data_mul,
-        output write_enable_mul
+        output writeback_mul
     );
 
     modport slave (        
@@ -36,12 +41,12 @@ interface CPU_bank_reg_if ();
         input read_reg_b,
         input write_reg,
         input write_data,
-        input write_enable,
-        input write_reg_mul,
-        input write_data_mul,
-        input write_enable_mul,
+        input write_enable,        
+        input writeback_mul,
         output read_data_a,
         output read_data_b
     );
 
 endinterface
+
+`endif

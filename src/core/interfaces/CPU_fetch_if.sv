@@ -1,3 +1,6 @@
+`ifndef CPU_FETCH_IF_SV
+`define CPU_FETCH_IF_SV
+
 `include "CPU_define.vh"
 
 interface CPU_fetch_if ();
@@ -6,8 +9,8 @@ interface CPU_fetch_if ();
     logic [`VIRTUAL_ADDR_WIDTH-1:0] tlb_addr;
     logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
 
-    logic [`PHYSICAL_ADDR_WIDTH-1:0] pc;
-    logic [`PHYSICAL_ADDR_WIDTH-1:0] jump_pc;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] pc;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] jump_pc;
     logic jump;
     logic exception;
 
@@ -20,11 +23,18 @@ interface CPU_fetch_if ();
 
     logic [`INSTR_WIDTH-1:0] instr;
     logic cache_hit;
-    logic [`PHYSICAL_ADDR_WIDTH-1:0] next_pc;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] next_pc;
 
     modport response (
         output tlb_hit,
         output instr, cache_hit, next_pc
     );
 
+    modport decode_req (
+        output jump, jump_pc
+    );
+        
+
 endinterface
+
+`endif

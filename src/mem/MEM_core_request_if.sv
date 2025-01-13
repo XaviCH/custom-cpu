@@ -1,3 +1,6 @@
+`ifndef MEM_CORE_REQUEST_IF_SV
+`define MEM_CORE_REQUEST_IF_SV
+
 `include "CPU_define.vh"
 
 interface MEM_core_request_if ();
@@ -18,3 +21,5 @@ interface MEM_core_request_if ();
     );
 
 endinterface
+
+`endif
