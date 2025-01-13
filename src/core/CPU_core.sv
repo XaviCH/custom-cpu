@@ -160,7 +160,18 @@ module CPU_core
 
     CPU_bank_reg_if bank_reg_if();
     CPU_mul_unit_if mul_unit_if();
-    assign bank_reg_if.write_reg = W_reg;
+
+    CPU_bank_reg bank_reg
+    (
+        .clock(clock),
+        .reset(reset),
+        .bank_reg_if(bank_reg_if),
+        .FWUnit_if(FWUnit_if),
+    );
+
+    assign bank_reg_if.writeback.write_enable = W_write;
+    assign bank_reg_if.writeback.write_reg = W_reg;
+    assign bank_reg_if.writeback.write_data = W_data;
 
     CPU_decode decode
     (
