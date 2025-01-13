@@ -36,8 +36,6 @@ interface CPU_HDUnit_if ();
 
     wire stall;
 
-    wire is_mul;
-
     wire stall_decode;
 
     modport master_fetch(
@@ -49,7 +47,6 @@ interface CPU_HDUnit_if ();
         output stall_decode,
         output decode_ra,
         output ra_use,
-        output is_mul,
         output decode_rb,
         output rb_use,
         output decode_rd,
@@ -61,10 +58,7 @@ interface CPU_HDUnit_if ();
     modport master_execute(
         output execute_mem_read,
         output execute_wb,
-        output execute_rd
-    );
-
-    modport master_mul(
+        output execute_rd,
         output mul_wb
     );
 
@@ -78,7 +72,6 @@ interface CPU_HDUnit_if ();
         input execute_rd,
         input decode_ra,
         input ra_use,
-        input is_mul,
         input decode_rb,
         input rb_use,
         input decode_rd,

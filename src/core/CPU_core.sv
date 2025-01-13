@@ -3,6 +3,7 @@
 `include "core/CPU_decode.sv"
 `include "core/CPU_commit.sv"
 `include "core/CPU_execute.sv"
+`include "bank_reg/CPU_bank_reg.sv"
 `include "cache/CPU_cache_types.svh"
 `include "cache/interfaces/CPU_mem_bus_request_if.sv"
 `include "cache/interfaces/CPU_mem_bus_response_if.sv"
@@ -134,7 +135,12 @@ module CPU_core
     CPU_FWUnit_if FWUnit_if();
     CPU_HDUnit_if HDUnit_if();
 
-    assign FWUnit_if.commit_value = commit_if.cache_data_out;
+    assign FWUnit_if.commit_value = commit_if.alu_result;
+    assign FWUnit_if.writeback_commit = commit_if.writeback.reg_write;
+    assign FWUnit_if.rd_commit = commit_if.reg_dest;
+
+    assign HDUnit_if.commit_mem_read=commit_if.commit.mem_read;
+    assign HDUnit_if.commit_rd=commit_if.reg_dest;
 
     CPU_FWUnit FWUnit
     (
@@ -159,8 +165,18 @@ module CPU_core
     );
 
     CPU_bank_reg_if bank_reg_if();
-    CPU_mul_unit_if mul_unit_if();
-    assign bank_reg_if.write_reg = W_reg;
+
+    CPU_bank_reg bank_reg
+    (
+        .clock(clock),
+        .reset(reset),
+        .bank_reg_if(bank_reg_if),
+        .FWUnit_if(FWUnit_if)
+    );
+
+    assign bank_reg_if.writeback.write_enable = W_write;
+    assign bank_reg_if.writeback.write_reg = W_reg;
+    assign bank_reg_if.writeback.write_data = W_data;
 
     CPU_decode decode
     (
@@ -170,7 +186,6 @@ module CPU_core
         .fetch_if (fetch_if),
         .decode_if (decode_if),
         .execute_if (execute_if),
-        .mul_unit_if(mul_unit_if),
         .FWUnit_if(FWUnit_if),
         .HDUnit_if(HDUnit_if),
         .offload(_offload)
@@ -183,7 +198,7 @@ module CPU_core
         .execute_if (execute_if),
         .FWUnit_if(FWUnit_if),
         .HDUnit_if(HDUnit_if),
-        .mul_unit_if(mul_unit_if),
+        .bank_reg_if (bank_reg_if),
         .commit_if (commit_if)
     );
 

@@ -7,9 +7,12 @@ interface CPU_bank_reg_if ();
 
     wire [$clog2(`NUM_REGS)-1:0] read_reg_a;
     wire [$clog2(`NUM_REGS)-1:0] read_reg_b;
-    wire [$clog2(`NUM_REGS)-1:0] write_reg;
-    wire [`REG_WIDTH-1:0] write_data;
-    wire write_enable;
+
+    typedef struct packed {
+        logic write_enable;
+        logic [$clog2(`NUM_REGS)-1:0] write_reg;
+        logic [`REG_WIDTH-1:0] write_data;
+    } writeback_t;
 
     typedef struct packed {
         logic write_enable_mul;
@@ -17,6 +20,7 @@ interface CPU_bank_reg_if ();
         logic [`REG_WIDTH-1:0] write_data_mul;
     } writeback_mul_t;
 
+    writeback_t writeback;
     writeback_mul_t writeback_mul;
 
     wire [`REG_WIDTH-1:0] read_data_a;
@@ -26,22 +30,25 @@ interface CPU_bank_reg_if ();
         output read_reg_a,
         output read_reg_b,
         input read_data_a,
-        input read_data_b
+        input read_data_b,
+        input writeback,
+        input writeback_mul
+
     );
 
-    modport master_write (
-        output write_reg,
-        output write_data,
-        output write_enable,
+    // modport master_write (
+    //     output writeback,
+    //     output writeback_mul
+    // );
+
+    modport master_execute (
         output writeback_mul
     );
 
     modport slave (        
         input read_reg_a,
         input read_reg_b,
-        input write_reg,
-        input write_data,
-        input write_enable,        
+        input writeback,     
         input writeback_mul,
         output read_data_a,
         output read_data_b
