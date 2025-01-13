@@ -26,7 +26,6 @@ interface CPU_execute_if ();
     commit_t commit;
     execute_t execute;
 
-    logic tlb_write;
     logic rm4;
 
     logic [`VIRTUAL_ADDR_WIDTH-1:0] next_PC;
@@ -39,6 +38,7 @@ interface CPU_execute_if ();
     logic [$clog2(`NUM_REGS)-1:0] rb_id;
     logic [$clog2(`NUM_REGS)-1:0] reg_dest;
 
+
     modport master (
         output writeback,
         output commit,
@@ -50,7 +50,6 @@ interface CPU_execute_if ();
         output reg_dest,
         output ra_id,
         output rb_id,
-        output tlb_write,
         output rm4
     );
 

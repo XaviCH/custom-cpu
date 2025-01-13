@@ -30,11 +30,18 @@ interface CPU_bank_reg_if ();
         output read_reg_a,
         output read_reg_b,
         input read_data_a,
-        input read_data_b
+        input read_data_b,
+        input writeback,
+        input writeback_mul
+
     );
 
-    modport master_write (
-        output writeback,
+    // modport master_write (
+    //     output writeback,
+    //     output writeback_mul
+    // );
+
+    modport master_execute (
         output writeback_mul
     );
 
