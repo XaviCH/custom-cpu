@@ -11,8 +11,12 @@ interface CPU_mem_bus_response_if #(
 
     logic valid;
     logic [LINE_WIDTH-1:0] data;
+    /* verilator lint_off UNUSEDSIGNAL */
+    /* verilator lint_off UNDRIVEN */
     logic [MEM_ADDR_WIDTH-1:0] addr;
-
+    /* verilator lint_on UNDRIVEN */
+    /* verilator lint_on UNUSEDSIGNAL */
+    
     modport master (
         output valid, data, addr
     );

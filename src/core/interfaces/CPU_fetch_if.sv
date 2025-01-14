@@ -7,8 +7,9 @@ interface CPU_fetch_if ();
 
     logic tlb_enable, tlb_write;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] tlb_addr;
+    /* verilator lint_off UNUSEDSIGNAL */
     logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
-
+    /* verilator lint_on UNUSEDSIGNAL */
     logic [`VIRTUAL_ADDR_WIDTH-1:0] pc;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] jump_pc;
     logic jump;

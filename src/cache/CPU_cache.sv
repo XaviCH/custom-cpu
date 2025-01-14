@@ -93,7 +93,7 @@ module CPU_cache
     logic [ADDR_WIDTH-1:0] _sb_tag_pop;
     /* verilator lint_on UNUSEDSIGNAL */
     assign _sb_operation = // write to sb is always available if the cache line is not invalid 
-        cache_request.write && 
+        cache_request.write && ~_sb_full &&
         _line_states[_line_idx] != INVALID &&
         _line_addrs[_line_idx]  == cache_request.addr[$clog2(BYTES_IN_LINE) +: ADDR_WIDTH-$clog2(BYTES_IN_LINE)]; 
 
@@ -149,7 +149,7 @@ module CPU_cache
     // WRITE logic
 
     logic _write_hit; 
-    assign _write_hit = _line_states[_line_idx] != INVALID && (~_sb_full || _sb_pop);
+    assign _write_hit = _sb_operation == PUSH; // && (~_sb_full || _sb_pop);
 
     // CACHE response logic
 
@@ -172,22 +172,45 @@ module CPU_cache
 
     // MEM request
         
-    assign mem_bus_request.addr = cache_request.addr[ADDR_WIDTH-1:$clog2(BYTES_IN_LINE)];
+    assign mem_bus_request.addr = 
+        mem_bus_request.read ? 
+            cache_request.addr[ADDR_WIDTH-1:$clog2(BYTES_IN_LINE)] : 
+            _line_addrs[_line_idx];
+
     assign mem_bus_request.read = 
         mem_bus_available && 
-        cache_request.read &&
-        ~_read_hit &&
         (
-            _line_states[_line_idx] == INVALID ||
-            _line_states[_line_idx] == VALID && ~&_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx]
+            (
+                cache_request.read &&
+                ~_read_hit &&
+                (
+                    _line_states[_line_idx] == INVALID ||
+                    _line_states[_line_idx] == VALID && ~|_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx]
+                ) 
+            ) || (
+                cache_request.write &&
+                ~_write_hit &&
+                (
+                    _line_states[_line_idx] == INVALID ||
+                    _line_states[_line_idx] == VALID && ~|_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx]
+                ) 
+            )
         );
     assign mem_bus_request.write =
         mem_bus_available &&
-        cache_request.read &&
-        ~_read_hit &&
         (
-            _line_states[_line_idx] == VALID && &_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx]
+            (
+                cache_request.read &&
+                ~_read_hit &&
+                (_line_states[_line_idx] == VALID && |_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx])
+            ) ||
+            (
+                cache_request.write &&
+                ~_write_hit &&
+                (_line_states[_line_idx] == VALID && |_line_dirties[_line_idx] && ~_sb_hit_lines[_line_idx])
+            )
         );
+    
     assign mem_bus_request.data = _line_datas[_line_idx];
 
     // Registers logic
@@ -201,7 +224,8 @@ module CPU_cache
         end else begin
 
             if (mem_bus_request.read) begin
-                _line_states[_line_idx] <= REQUESTED;
+                _line_states [_line_idx] <= REQUESTED;
+                _line_addrs  [_line_idx] <= cache_request.addr[ADDR_WIDTH-1:$clog2(BYTES_IN_LINE)];
             end else if (mem_bus_request.write) begin
                 _line_states[_line_idx] <= INVALID;
             end
@@ -216,12 +240,13 @@ module CPU_cache
                 end else begin
                     $error("Unexpected behaviour, data no requested given.");
                 end
-                _line_addrs     [_mem_line_idx] <= mem_bus_response.addr;
+                
                 _line_dirties   [_mem_line_idx] <= '0;
                 _line_states    [_mem_line_idx] <= VALID;
             end
 
             if (_sb_pop) begin
+                $display("pop data -> hbp:%h, data_pop: %h, tag_pop: %h", _sb_hit_bytes_pop, _sb_data_pop, _sb_tag_pop);
                 for(int i=0; i<BYTES_IN_WORD; ++i) begin
                     if (_sb_hit_bytes_pop[i]) begin
                         _line_dirties[_sb_tag_pop[4 +: $clog2(SIZE)]][_sb_tag_pop[3:2]*DIRTIES_IN_WORD +: DIRTIES_IN_WORD][i] <= 1;
@@ -230,6 +255,13 @@ module CPU_cache
                 end
             end
 
+        end
+    end
+
+    always @(posedge clock) begin
+        if (mem_bus_request.write) begin
+            $display("send to MEM");
+            $display("addr: %h, data: %h",mem_bus_request.addr, mem_bus_request.data);
         end
     end
 

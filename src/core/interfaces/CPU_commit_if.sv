@@ -2,34 +2,31 @@
 `define CPU_COMMIT_IF_SV
 
 `include "CPU_define.vh"
-`include "cache/CPU_cache_types.svh"
+`include "CPU_types.vh"
 
 interface CPU_commit_if ();
-
-    typedef struct packed {
-        logic mem_write;
-        logic mem_read;
-    } commit_t;
 
     typedef struct packed {
         logic mem_to_reg;
         logic reg_write;
     } writeback_t;
 
-    commit_t commit;
-    writeback_t writeback;
+    /* verilator lint_off UNUSEDSIGNAL */
+    CPU_commit_request_t commit;
+    /* verilator lint_on UNUSEDSIGNAL */
+    // writeback_t writeback;
     logic [`REG_WIDTH-1:0] alu_result;
     logic [`REG_WIDTH-1:0] rb_data;
     //TYPE_M y TYPE_R
-    logic [$clog2(`NUM_REGS)-1:0] reg_dest;
+    // logic [$clog2(`NUM_REGS)-1:0] reg_dest;
 
-    //BRANCH
-    logic zero;
 
     // TLB logic
     logic tlb_enable, tlb_write;
+    /* verilator lint_off UNUSEDSIGNAL */
     logic [`VIRTUAL_ADDR_WIDTH-1:0] tlb_addr;
     logic [`PHYSICAL_ADDR_WIDTH-1:0] tlb_data;
+    /* verilator lint_on UNUSEDSIGNAL */
     // Cache logic
     logic cache_write, cache_read;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] cache_addr;
@@ -39,11 +36,10 @@ interface CPU_commit_if ();
 
     modport master (
         output commit,
-        output writeback,
+        //output writeback,
         output alu_result,
-        output zero,
-        output rb_data,
-        output reg_dest
+        output rb_data
+        // output reg_dest
     );
 
     modport request (

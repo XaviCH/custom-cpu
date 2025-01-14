@@ -57,17 +57,17 @@ interface CPU_decode_if ();
     tlb_exception_t tlb_exception;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] rm0;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] rm1;
-    logic [`VIRTUAL_ADDR_WIDTH-1:0] rm2;
+    // logic [`VIRTUAL_ADDR_WIDTH-1:0] rm2;
     logic rm4;
 
     tlb_write_t tlb_write;
     logic itlb_write;
 
     modport master (
-        output next_PC,
         output valid_instr,
         output instr,
-        output nop
+        output next_PC, 
+        output nop // ?
     );
 
     modport slave (
@@ -76,7 +76,7 @@ interface CPU_decode_if ();
         input instr,
         input nop,
         input tlb_exception,
-        output rm0,rm1, rm4,
+        output rm0,rm1,rm4,
         output tlb_write, itlb_write
     );
 

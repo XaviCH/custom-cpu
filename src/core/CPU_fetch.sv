@@ -75,4 +75,17 @@ module CPU_fetch #(
         end
     end
 
+    // DEBUG data
+    integer clocks = 0;
+
+    always @(posedge clock) begin
+        // $display("--- FETCH ---");
+        // $display("PC: %h, c_hit: %h, instr: %h", fetch_request.pc, fetch_response.cache_hit, fetch_response.instr);
+        // $display("b_available: %h, b_req_read: %h, b_res_valid: %h", mem_bus_available, mem_bus_request.read, mem_bus_response.valid);
+        if (clocks == 100) begin 
+            $finish();
+        end
+        clocks <= clocks + 1;
+    end
+
 endmodule

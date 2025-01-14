@@ -5,23 +5,24 @@
 `include "test/program/CPU_instr.sv"
 
 module CPU_tb ();
-    localparam int NUM_CODES = 2;
-    localparam int CODE_ADDRS[NUM_CODES] = {0, 2};
-    localparam int CODE_START_INSTR[NUM_CODES] = {0, 4};
+
+    localparam int NUM_CODES = 1;
+    localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4};
+    localparam int CODE_START_INSTR[NUM_CODES] = {0};
     localparam int TOTAL_INSTR = 8;
     localparam [`INSTR_WIDTH-1:0] CODE_INSTR_DATAS[TOTAL_INSTR] = {
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_ADD(0,1,2),
-        I_STOP()
+        I_LDW(0, 0, `BOOT_ADDR),
+        I_ADD(1,0,0),
+        I_STW(1, 2, `BOOT_ADDR),
+        I_STW(0, 2, `BOOT_ADDR+64),
+        I_STOP(),
+        0,
+        0,
+        0
     };
 
     reg clock;
-    reg reset;
+    reg reset = 1;
     reg offload;
 
     MEM_core_bus_request_if bus_request();
@@ -68,9 +69,16 @@ module CPU_tb ();
         reset = 0;
     end
 
-    always @(offload & ~reset) begin
-        $display("End Of The Program.");
-        $finish();
+    always @(posedge clock) begin
+        if (reset) begin
+            $display("line data: %h", memory_core.lines [`BOOT_ADDR >> 4]);
+        end
+        if (offload & ~reset) begin
+            #100
+            $display("End Of The Program. offload %h", offload);
+            $display("line data: %h", memory_core.lines [`BOOT_ADDR >> 4]);
+            $finish();
+        end
     end
 
 endmodule

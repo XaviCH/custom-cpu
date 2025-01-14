@@ -26,28 +26,33 @@ module CPU_core
     // Pipeline registers
     logic [`VIRTUAL_ADDR_WIDTH-1:0] F_pc;
 
-    logic [`VIRTUAL_ADDR_WIDTH-1:0] D_pc;
-    tlb_exception_t D_tlb_exception;
-    logic [`INSTR_WIDTH-1:0] D_instr;
     logic D_hit;
+    logic [`INSTR_WIDTH-1:0] D_instr;
+    tlb_exception_t D_tlb_exception;
+    logic [`VIRTUAL_ADDR_WIDTH-1:0] D_next_pc;
 
+    logic           E_usermode, E_write, E_read;
+    tlb_write_t     E_tlb_write;
+    cache_mode_e    E_mode;
     tlb_exception_t E_tlb_exception;
-    tlb_write_t E_tlb_write;
-    cache_mode_e E_mode;
-    logic E_usermode;
-    logic [`VIRTUAL_ADDR_WIDTH-1:0] E_pc;
+    logic E_bank_write;
+    logic [$clog2(`NUM_REGS)-1:0] E_reg_dst;
+    // logic [`REG_WIDTH-1:0]   E_data;
 
+    tlb_exception_t         C_tlb_exception;
+    tlb_write_t             C_tlb_write;
+    cache_mode_e            C_mode;
+    logic                   C_usermode, C_write, C_read;
+    logic [`REG_WIDTH-1:0]   C_data;
     logic [`VIRTUAL_ADDR_WIDTH-1:0] C_addr;
-    tlb_exception_t C_tlb_exception;
-    logic [`VIRTUAL_ADDR_WIDTH-1:0] C_pc;
-    tlb_write_t C_tlb_write;
-    cache_mode_e C_mode;
-    logic C_usermode;
+    logic C_bank_write;
+    logic [$clog2(`NUM_REGS)-1:0] C_reg_dst;
+    // logic [`VIRTUAL_ADDR_WIDTH-1:0] C_addr;
 
     tlb_exception_t W_tlb_exception;
     logic W_write;
-    logic [$clog2(`NUM_REGS)-1:0] W_reg;
     logic [`REG_WIDTH-1:0] W_data;
+    logic [$clog2(`NUM_REGS)-1:0] W_reg;
 
     logic _offload;
     assign offload = _offload;
@@ -67,17 +72,24 @@ module CPU_core
 
     // assign F_usermode = decode_it.rm4; // usermode
     
-    assign decode_if.nop = ~D_hit;
+    assign decode_if.valid_instr = D_hit;
+    assign decode_if.instr = D_instr;
+    assign decode_if.next_PC = D_next_pc;
+    assign decode_if.nop = ~D_hit; // ??
     assign decode_if.tlb_exception = W_tlb_exception;
 
     assign E_tlb_write = decode_if.tlb_write;
+    assign E_write = execute_if.commit.mem_write;
+    assign E_read = execute_if.commit.mem_read;
     assign E_mode = execute_if.commit.mode;
+    assign E_bank_write = execute_if.writeback.reg_write;
+    assign E_reg_dst = execute_if.reg_dest;
     
-    assign commit_if.cache_write = commit_if.commit.mem_write; 
-    assign commit_if.cache_read = commit_if.commit.mem_read;
+    assign commit_if.cache_write = C_write; 
+    assign commit_if.cache_read = C_read;
     assign commit_if.cache_mode = C_mode;
-    assign commit_if.cache_data_in = commit_if.rb_data;
-    assign commit_if.cache_addr = commit_if.alu_result;
+    assign commit_if.cache_data_in = C_data;    // commit_if.rb_data;
+    assign commit_if.cache_addr = C_addr;       // commit_if.alu_result;
 
     assign commit_if.tlb_enable = C_usermode != `SUPERUSER_MODE;
     assign commit_if.tlb_addr = C_tlb_write.addr;
@@ -92,7 +104,7 @@ module CPU_core
 
     // Memory module
     always_latch begin
-        // request balancer
+        // request router
         if (dcache_mem_bus_request.read || dcache_mem_bus_request.write) begin
             mem_bus_request.id      = 0;
             mem_bus_request.read    = dcache_mem_bus_request.read;
@@ -109,7 +121,7 @@ module CPU_core
             mem_bus_request.read    = 0;
             mem_bus_request.write   = 0;
         end
-        // response dispatcher
+        // response router
         if (mem_bus_response.valid) begin
             if (mem_bus_response.id == 0) begin
                 dcache_mem_bus_response.valid   = 1;
@@ -118,7 +130,7 @@ module CPU_core
             end else begin
                 dcache_mem_bus_response.valid = 0;
             end
-            if (mem_bus_response.id == 0) begin
+            if (mem_bus_response.id == 1) begin
                 icache_mem_bus_response.valid   = 1;
                 icache_mem_bus_response.addr    = mem_bus_response.addr;
                 icache_mem_bus_response.data    = mem_bus_response.data;
@@ -135,12 +147,16 @@ module CPU_core
     CPU_FWUnit_if FWUnit_if();
     CPU_HDUnit_if HDUnit_if();
 
-    assign FWUnit_if.commit_value = commit_if.alu_result;
-    assign FWUnit_if.writeback_commit = commit_if.writeback.reg_write;
-    assign FWUnit_if.rd_commit = commit_if.reg_dest;
+    assign FWUnit_if.commit_value = C_addr;
+    assign FWUnit_if.writeback_commit = C_bank_write;
+    assign FWUnit_if.rd_commit = C_reg_dst;
 
-    assign HDUnit_if.commit_mem_read=commit_if.commit.mem_read;
-    assign HDUnit_if.commit_rd=commit_if.reg_dest;
+    assign HDUnit_if.execute_mem_read   = E_read;
+    assign HDUnit_if.execute_rd         = E_reg_dst;
+    assign HDUnit_if.execute_wb         = E_bank_write;
+
+    assign HDUnit_if.commit_mem_read = C_read;
+    assign HDUnit_if.commit_rd=C_reg_dst;
 
     CPU_FWUnit FWUnit
     (
@@ -216,32 +232,45 @@ module CPU_core
     // Registers logic
     logic required_dcache;
     logic required_dtlb;
-    assign required_dcache = commit_if.commit.mem_read || commit_if.commit.mem_write;
+    assign required_dcache = C_read || C_write;
     assign required_dtlb = required_dcache && commit_if.tlb_enable;
 
+    assign HDUnit_if.cache_miss = required_dcache && ~commit_if.cache_hit;
+
     always @(posedge clock) begin
-        if (~(required_dcache && ~commit_if.cache_hit)) begin // dcache miss behaviour
+        if (reset) begin
+            F_pc <= fetch_if.next_pc;
+        end else if (~(required_dcache && ~commit_if.cache_hit)) begin // dcache miss behaviour
 
             if (fetch_if.cache_hit && ~HDUnit_if.stall /* <-- q es esto */) begin
                 F_pc <= fetch_if.next_pc;
             end
 
             if (~HDUnit_if.stall && ~HDUnit_if.stall_decode) begin
-                D_instr <= fetch_if.instr;
-                D_hit   <= fetch_if.cache_hit;
+                D_next_pc   <= fetch_if.next_pc;
+                D_instr     <= fetch_if.instr;
+                D_hit       <= (~fetch_if.tlb_enable || fetch_if.tlb_hit) && fetch_if.cache_hit;
+
+                D_tlb_exception.raise   <= ~fetch_if.tlb_hit && fetch_if.tlb_enable;
+                D_tlb_exception.vaddr   <= fetch_if.tlb_addr;
+                D_tlb_exception.pc      <= fetch_if.pc;
             end
 
-            D_tlb_exception.raise   <= ~fetch_if.tlb_hit && fetch_if.tlb_enable;
-            D_tlb_exception.vaddr   <= fetch_if.tlb_addr;
-            D_tlb_exception.pc      <= fetch_if.pc;
-
-            E_tlb_exception         <= D_tlb_exception;
-            E_usermode              <= decode_if.rm4;
+            if (~HDUnit_if.stall) begin
+                E_tlb_exception         <= D_tlb_exception;
+                E_usermode              <= decode_if.rm4;
+            end
 
             C_tlb_exception         <= E_tlb_exception;
             C_usermode              <= E_usermode;
             C_mode                  <= E_mode;
+            C_write                 <= E_write;
+            C_read                  <= E_read;
             C_tlb_write             <= E_tlb_write;
+            C_addr                  <= commit_if.alu_result;
+            C_data                  <= commit_if.rb_data;
+            C_bank_write            <= E_bank_write;
+            C_reg_dst               <= E_reg_dst;
 
             if (required_dtlb && ~commit_if.tlb_hit) begin
                 W_tlb_exception.raise   <= 1;
@@ -251,10 +280,23 @@ module CPU_core
                 W_tlb_exception <= C_tlb_exception;
             end
 
-            W_write <= commit_if.writeback.reg_write && (~commit_if.writeback.mem_to_reg || commit_if.cache_hit);
-            W_data <= commit_if.writeback.mem_to_reg ? commit_if.cache_data_out : commit_if.alu_result;
-            W_reg <= commit_if.reg_dest;
+            W_write <= C_bank_write && (~C_read || commit_if.cache_hit);
+            W_data <= C_read ? commit_if.cache_data_out : C_addr;
+            W_reg <= C_reg_dst;
+            
         end
     end
+
+    // always @(posedge clock) begin
+    //     $display("--- CORE ---");
+    //     $display("E: bank_write: %h, pc: %h", E_bank_write, E_tlb_exception.pc);
+    //     $display("C: addr: %h, cdata %h, read %h, bank_write: %h, pc %h", C_addr, commit_if.cache_data_out, C_read, C_bank_write, C_tlb_exception.pc);
+    //     $display("W: write: %h, data %h, reg %h, pc: %h", W_write, W_data, W_reg, W_tlb_exception.pc);
+    //     $display("----HDUNIT----");
+    //     $display("stall: %h", HDUnit_if.stall);
+    //     $display("rlh: %h, read: %h, rd: %h=%h, ra: %h=%h, rb: %h=%h", 
+    //         HDUnit.read_load_hazard, HDUnit_if.execute_mem_read, 
+    //         1/* ?? */, HDUnit_if.execute_rd, HDUnit_if.ra_use, HDUnit_if.decode_ra, HDUnit_if.rb_use, HDUnit_if.decode_rb);
+    // end
 
 endmodule

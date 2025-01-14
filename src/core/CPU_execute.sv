@@ -34,10 +34,6 @@ writeback_mul_t mul_stages[`MUL_STAGES];
 assign FWUnit_if.ra_execute_id = execute_if.ra_id;
 assign FWUnit_if.rb_execute_id = execute_if.rb_id;
 
-assign HDUnit_if.execute_mem_read=execute_if.commit.mem_read;
-assign HDUnit_if.execute_rd=execute_if.reg_dest;
-assign HDUnit_if.execute_wb=execute_if.writeback.reg_write;
-
 assign ra_value = FWUnit_if.ra_execute_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
 assign rb_value = FWUnit_if.rb_execute_bypass_mul ? FWUnit_if.wb_value_mul : (execute_if.execute.use_reg_b ? (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data)) : execute_if.offset_data);
 
@@ -62,26 +58,25 @@ assign HDUnit_if.mul_wb[4].rd_id = mul_stages[4].rd_id;
 
 integer i;
 
+assign commit_if.alu_result = execute_if.execute.alu_op == `ALU_ADD_OP ? ra_value + rb_value : ra_value - rb_value;
+assign commit_if.rb_data = rb_value;
+
 always @(posedge clock) begin
     if (reset) begin
         for (i=0; i<`MUL_STAGES; i=i+1) mul_stages[i] <= 0;
         //TODO: reset 
     end else begin
         //PASS VALUES
-        commit_if.reg_dest <= execute_if.reg_dest;
-        commit_if.writeback <= execute_if.writeback;
+        // commit_if.reg_dest <= execute_if.reg_dest;
+        // commit_if.writeback <= execute_if.writeback;
         commit_if.commit <= execute_if.commit;
-
-        commit_if.rb_data <= rb_value;
+        
         //ALU
-        if (execute_if.execute.alu_op == `ALU_ADD_OP) begin
-            commit_if.alu_result <= ra_value + rb_value;
-        end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
-            commit_if.alu_result <= ra_value + rb_value;            
-        end 
-        if (commit_if.alu_result==0) begin
-            commit_if.zero<='b1;
-        end
+        // if (execute_if.execute.alu_op == `ALU_ADD_OP) begin
+        //     commit_if.alu_result <= ra_value + rb_value;
+        // end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
+        //     commit_if.alu_result <= ra_value + rb_value;            
+        // end 
 
         bank_reg_if.writeback_mul <= mul_stages[4];
         mul_stages[4]<=mul_stages[3];
