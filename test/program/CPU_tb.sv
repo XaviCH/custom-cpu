@@ -7,7 +7,7 @@
 module CPU_tb ();
 
     localparam int NUM_CODES = 1;
-    localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4};
+    localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4}; // 0x1000 > 4 0x100
     localparam int CODE_START_INSTR[NUM_CODES] = {0};
     localparam int TOTAL_INSTR = 8;
     localparam [`INSTR_WIDTH-1:0] CODE_INSTR_DATAS[TOTAL_INSTR] = {
