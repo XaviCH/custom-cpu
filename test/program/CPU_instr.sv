@@ -21,12 +21,24 @@ function logic [`INSTR_WIDTH-1:0] I_LDW(logic [4:0] dst, logic [4:0] src1, logic
     return {7'(`ISA_LDW_OP), {5'(dst)}, {5'(src1)}, offset};
 endfunction
 
+function logic [`INSTR_WIDTH-1:0] I_LDI(logic [4:0] dst, logic [19:0] offset);
+    return {7'(`ISA_LDI_OP), {5'(dst)}, offset};
+endfunction
+
 function logic [`INSTR_WIDTH-1:0] I_STB(logic [4:0] dst, logic [4:0] src1, logic [14:0] offset);
     return {7'(`ISA_STB_OP), {5'(dst)}, {5'(src1)}, offset};
 endfunction
 
 function logic [`INSTR_WIDTH-1:0] I_STW(logic [4:0] dst, logic [4:0] src1, logic [14:0] offset);
     return {7'(`ISA_STW_OP), {5'(dst)}, {5'(src1)}, offset};
+endfunction
+
+function logic [`INSTR_WIDTH-1:0] I_BEQ(logic [4:0] src1, logic [4:0] src2, logic [14:0] offset);
+    return {7'(`ISA_BEQ_OP), offset[14:10], {5'(src1)}, {5'(src2)}, offset[9:0]};
+endfunction
+
+function logic [`INSTR_WIDTH-1:0] I_JUMP(logic [4:0] src1, logic [19:0] offset);
+    return {7'(`ISA_JUMP_OP), offset[19:15], {5'(src1)}, offset[14:0]};
 endfunction
 
 function logic [`INSTR_WIDTH-1:0] I_STOP();

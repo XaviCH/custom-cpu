@@ -4,20 +4,24 @@
 `include "test/CPU_define.svh"
 `include "test/program/CPU_instr.sv"
 
-module CPU_tb ();
+module CPU_branch_tb ();
 
     localparam int NUM_CODES = 1;
     localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4}; // 0x1000 > 4 0x100
     localparam int CODE_START_INSTR[NUM_CODES] = {0};
-    localparam int TOTAL_INSTR = 8;
+    localparam int TOTAL_INSTR = 12;
     localparam [`INSTR_WIDTH-1:0] CODE_INSTR_DATAS[TOTAL_INSTR] = {
-        I_LDI(0, 10),
-        I_ADD(1,0,0),
-        I_STW(1, 2, `BOOT_ADDR),
-        I_STW(0, 2, `BOOT_ADDR+64),
+        I_LDI(0, 2),
+        I_LDI(1, 1),
+        I_LDI(2, 0),
+        I_LDI(3, 6),
+        I_SUB(0, 0, 1),
+        I_ADD(3, 3, 3),
+        I_BEQ(0, 2, 1),
+        I_JUMP(2, `BOOT_ADDR+16),
+        I_STW(3, 2, 0),
+        I_STW(0, 2, 64),
         I_STOP(),
-        0,
-        0,
         0
     };
 
@@ -73,11 +77,11 @@ module CPU_tb ();
 
     always @(posedge clock) begin
         if (reset) begin
-            $display("line data: %h", memory_core.lines [`BOOT_ADDR >> 4]);
+            $display("line data: %h", memory_core.lines [0]);
         end else if (offload) begin
             #900
             $display("End Of The Program: Clocks %d.", clock_perf_data);
-            $display("Out data: %h", memory_core.lines [`BOOT_ADDR >> 4]);
+            $display("Out data: %h", memory_core.lines [0]);
             $finish();
         end
     end
@@ -86,6 +90,9 @@ module CPU_tb ();
         if (~reset) begin 
             clock_perf_data <= clock_perf_data + 1;
         end
+        // if (clock_perf_data == 100) begin 
+        //     $finish();
+        // end
     end
 
 endmodule

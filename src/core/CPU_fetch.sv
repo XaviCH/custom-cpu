@@ -39,7 +39,7 @@ module CPU_fetch #(
         .out(_tlb_out)
     );
 
-    assign cache_request.read = 1 && (_tlb_hit || ~fetch_request.tlb_enable);
+    assign cache_request.read = 1 && (_tlb_hit || ~fetch_request.tlb_enable) && ~fetch_request.jump;
     assign cache_request.write = 0; // Write not allowed on icache
     assign cache_request.mode = WORD; //
     assign cache_request.addr = {
@@ -59,7 +59,7 @@ module CPU_fetch #(
     
     assign fetch_response.tlb_hit = _tlb_hit && _tlb_out == cache_response.addr[MEM_ADDR_WIDTH-1:PAGE_WIDTH];
     assign fetch_response.instr = cache_response.data;
-    assign fetch_response.cache_hit = cache_response.hit;
+    assign fetch_response.cache_hit = cache_response.hit && ~fetch_request.jump;
 
     always_comb begin
         if (reset) begin
@@ -76,16 +76,10 @@ module CPU_fetch #(
     end
 
     // DEBUG data
-    integer clocks = 0;
-
     always @(posedge clock) begin
         // $display("--- FETCH ---");
-        // $display("PC: %h, c_hit: %h, instr: %h", fetch_request.pc, fetch_response.cache_hit, fetch_response.instr);
+        // $display("PC: %h, c_hit: %h, instr: %h, jump: %h, next_pc: %h", fetch_request.pc, fetch_response.cache_hit, fetch_response.instr, fetch_request.jump, fetch_response.next_pc);
         // $display("b_available: %h, b_req_read: %h, b_res_valid: %h", mem_bus_available, mem_bus_request.read, mem_bus_response.valid);
-        if (clocks == 100) begin 
-            $finish();
-        end
-        clocks <= clocks + 1;
     end
 
 endmodule

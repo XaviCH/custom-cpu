@@ -48,14 +48,16 @@
 `define ISA_ADD_OP 'h0
 `define ISA_SUB_OP 'h1
 `define ISA_MUL_OP 'h2
+
 `define ISA_LDB_OP 'h10
 `define ISA_LDW_OP 'h11
 `define ISA_STB_OP 'h12
 `define ISA_STW_OP 'h13
 `define ISA_MOV_OP 'h14
+`define ISA_LDI_OP 'h15
+
 `define ISA_BEQ_OP 'h30
 `define ISA_JUMP_OP 'h31
-
 `define ISA_TLB_WRITE_OP 'h32
 `define ISA_IRET_OP 'h33
 `define ISA_STOP_OP 'h34

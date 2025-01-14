@@ -247,7 +247,7 @@ module CPU_core
             F_pc <= fetch_if.next_pc;
         end else if (~(required_dcache && ~commit_if.cache_hit)) begin // dcache miss behaviour
 
-            if (fetch_if.cache_hit && ~HDUnit_if.stall /* <-- q es esto */) begin
+            if ((fetch_if.cache_hit || fetch_if.jump) && ~HDUnit_if.stall /* <-- q es esto */) begin
                 F_pc <= fetch_if.next_pc;
             end
 
@@ -293,21 +293,25 @@ module CPU_core
     end
 
     always @(posedge clock) begin
-        $display("--- CORE ---");
-        $display("E: bank_write: %h, pc: %h", E_bank_write, E_tlb_exception.pc);
-        $display("C: addr: %h, data: %h cdata %h, read %h, bank_write: %h, pc %h", C_addr, C_data, commit_if.cache_data_out, C_read, C_bank_write, C_tlb_exception.pc);
-        $display("W: write: %h, data %h, reg %h, pc: %h", W_write, W_data, W_reg, W_tlb_exception.pc);
+        // $display("--- CORE ---");
+        // $display("E: bank_write: %h, pc: %h", E_bank_write, E_tlb_exception.pc);
+        // $display("C: addr: %h, data: %h cdata %h, read %h, bank_write: %h, pc %h", C_addr, C_data, commit_if.cache_data_out, C_read, C_bank_write, C_tlb_exception.pc);
+        // $display("W: write: %h, data %h, reg %h, pc: %h", W_write, W_data, W_reg, W_tlb_exception.pc);
         // $display("----HDUNIT----");
         // $display("stall: %h", HDUnit_if.stall);
         // $display("rlh: %h, read: %h, rd: %h=%h, ra: %h=%h, rb: %h=%h", 
         //     HDUnit.read_load_hazard, HDUnit_if.execute_mem_read, 
         //     1/* ?? */, HDUnit_if.execute_rd, HDUnit_if.ra_use, HDUnit_if.decode_ra, HDUnit_if.rb_use, HDUnit_if.decode_rb);
-        $display("----EXECUTE----");
-        $display("alu ra: %h, alu rb value: %h, alu op2 value: %h", execute.ra_value, execute.rb_value, execute.op2_value);
-        $display("----FWUNIT----");
-        $display("alu ra: %h, alu rb: %h, bypass commit: %h, bypass wb; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0]);
-        $display("commit id: %h, commit write enable; %h, commit: value: %h", FWUnit_if.rd_commit, FWUnit_if.writeback_commit, FWUnit_if.commit_value);
-        $display("wb id: %h, wb write enable; %h, wb: value: %h", FWUnit_if.rd_wb, FWUnit_if.writeback_wb, FWUnit_if.wb_value);
+        // $display("----DECODE----");
+        // $display("PC: %h, write: %h", D_tlb_exception.pc, execute_if.commit.mem_write);
+        // $display("----EXECUTE----");
+        // $display("PC: %h, write: %h, addr: %h", E_tlb_exception.pc, E_write, commit_if.alu_result);
+        // $display("op1: %h, op2: %h, ra value: %h, rb value %h", execute.op1_value, execute.op2_value, execute.ra_value, execute.rb_value);
+        // $display("----FWUNIT----");
+        // $display("fw ra id: %h, fw rb id: %h, fw rd_commit: %h, fw wb commit; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0]);
+        // $display("alu ra: %h, alu rb: %h, bypass ra commit: %h, bypass ra wb; %hb, bypass rb commit: %h, bypass rb wb; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0], FWUnit_if.rb_execute_bypass[1], FWUnit_if.rb_execute_bypass[0]);
+        // $display("commit id: %h, commit write enable; %h, commit: value: %h", FWUnit_if.rd_commit, FWUnit_if.writeback_commit, FWUnit_if.commit_value);
+        // $display("wb id: %h, wb write enable; %h, wb: value: %h", FWUnit_if.rd_wb, FWUnit_if.writeback_wb, FWUnit_if.wb_value);
 
     end
 

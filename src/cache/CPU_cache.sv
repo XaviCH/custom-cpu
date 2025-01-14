@@ -142,9 +142,12 @@ module CPU_cache
     end
 
     assign _read_hit = 
-        cache_request.mode == BYTE && _read_hit_bytes[_word_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE] || 
-        cache_request.mode == HALF && &_read_hit_bytes[_word_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF] || 
-        cache_request.mode == WORD && &_read_hit_bytes;
+        _line_addrs[_line_idx]  == cache_request.addr[$clog2(BYTES_IN_LINE) +: ADDR_WIDTH-$clog2(BYTES_IN_LINE)]
+        && (
+            cache_request.mode == BYTE && _read_hit_bytes[_word_byte_idx*DIRTIES_IN_BYTE +: DIRTIES_IN_BYTE] || 
+            cache_request.mode == HALF && &_read_hit_bytes[_word_half_idx*DIRTIES_IN_HALF +: DIRTIES_IN_HALF] || 
+            cache_request.mode == WORD && &_read_hit_bytes
+        );
 
     // WRITE logic
 
@@ -241,12 +244,10 @@ module CPU_cache
                     $error("Unexpected behaviour, data no requested given.");
                 end
                 
-                _line_dirties   [_mem_line_idx] <= '0;
                 _line_states    [_mem_line_idx] <= VALID;
             end
 
             if (_sb_pop) begin
-                $display("pop data -> hbp:%h, data_pop: %h, tag_pop: %h", _sb_hit_bytes_pop, _sb_data_pop, _sb_tag_pop);
                 for(int i=0; i<BYTES_IN_WORD; ++i) begin
                     if (_sb_hit_bytes_pop[i]) begin
                         _line_dirties[_sb_tag_pop[4 +: $clog2(SIZE)]][_sb_tag_pop[3:2]*DIRTIES_IN_WORD +: DIRTIES_IN_WORD][i] <= 1;
@@ -259,14 +260,18 @@ module CPU_cache
     end
 
     always @(posedge clock) begin
-        if (_sb_operation == PUSH) begin
-            $display("SB push");
-            $display("mode: %h, addr: %h, data: %h", cache_request.mode, cache_request.addr, cache_request.data);
-        end
-        if (mem_bus_request.write) begin
-            $display("send to MEM");
-            $display("addr: %h, data: %h",mem_bus_request.addr, mem_bus_request.data);
-        end
+        // if (_sb_operation == PUSH) begin
+        //     $display("SB push");
+        //     $display("mode: %h, addr: %h, data: %h", cache_request.mode, cache_request.addr, cache_request.data);
+        // end
+        // if (mem_bus_response.valid) begin
+        //     $display("-- MEM RESPONSE --");
+        //     $display("addr: %h, data: %h",  mem_bus_response.addr, mem_bus_response.data);
+        // end
+        // if (mem_bus_request.write) begin
+        //     $display("-- MEM REQUEST WRITE --");
+        //     $display("addr: %h, data: %h",  mem_bus_request.addr, mem_bus_request.data);
+        // end
     end
 
 endmodule

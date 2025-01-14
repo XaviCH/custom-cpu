@@ -30,6 +30,8 @@ interface CPU_execute_if ();
     logic [$clog2(`NUM_REGS)-1:0] rb_id;
     logic [$clog2(`NUM_REGS)-1:0] reg_dest;
 
+    logic imm;
+
 
     modport master (
         output writeback,
@@ -41,7 +43,7 @@ interface CPU_execute_if ();
         output offset_data,
         output reg_dest,
         output ra_id,
-        output rb_id
+        output rb_id, imm
     );
 
     modport slave (
@@ -54,7 +56,7 @@ interface CPU_execute_if ();
         input offset_data,
         input reg_dest,
         input ra_id,
-        input rb_id
+        input rb_id, imm
     );
 
 endinterface

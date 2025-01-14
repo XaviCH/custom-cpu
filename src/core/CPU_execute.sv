@@ -22,6 +22,8 @@ module CPU_execute
 
 wire [`REG_WIDTH-1:0] ra_value;
 wire [`REG_WIDTH-1:0] rb_value;
+
+wire [`REG_WIDTH-1:0] op1_value;
 wire [`REG_WIDTH-1:0] op2_value;
 
 typedef struct packed {
@@ -38,12 +40,12 @@ assign FWUnit_if.rb_execute_id = ( execute_if.commit.mem_write ? execute_if.reg_
 assign ra_value = FWUnit_if.ra_execute_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.ra_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.ra_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.ra_data));
 assign rb_value = FWUnit_if.rb_execute_bypass_mul ? FWUnit_if.wb_value_mul : (FWUnit_if.rb_execute_bypass[1] ? FWUnit_if.commit_value : (FWUnit_if.rb_execute_bypass[0] ? FWUnit_if.wb_value : execute_if.rb_data));
 
-
+assign op1_value =  (execute_if.imm ? 0 : ra_value);
 assign op2_value =  (execute_if.execute.use_reg_b ? rb_value : execute_if.offset_data);
 
 assign mul_stages[0].writeback_mul = (execute_if.execute.alu_op == `ALU_MUL_OP);
 assign mul_stages[0].rd_id = execute_if.reg_dest;
-assign mul_stages[0].mul_result= ra_value * op2_value;
+assign mul_stages[0].mul_result= op1_value * op2_value;
 
 assign HDUnit_if.mul_wb[0].write_back = mul_stages[0].writeback_mul;
 assign HDUnit_if.mul_wb[0].rd_id = mul_stages[0].rd_id;
@@ -62,7 +64,7 @@ assign HDUnit_if.mul_wb[4].rd_id = mul_stages[4].rd_id;
 
 integer i;
 
-assign commit_if.alu_result = execute_if.execute.alu_op == `ALU_ADD_OP ? ra_value + op2_value : ra_value - op2_value;
+assign commit_if.alu_result = execute_if.execute.alu_op == `ALU_ADD_OP ? op1_value + op2_value : op1_value - op2_value;
 assign commit_if.rb_data = rb_value;
 
 always @(posedge clock) begin
