@@ -1,18 +1,24 @@
+`ifndef MEM_CORE_RESPONSE_IF_SV
+`define MEM_CORE_RESPONSE_IF_SV
+
 `include "CPU_define.vh"
 
 interface MEM_core_response_if ();
 
+    localparam LINE_ADDR_WIDTH = `PHYSICAL_ADDR_WIDTH - $clog2(`LINE_WIDTH/`BYTE_WIDTH);
+    
     logic valid;
-    logic [LINE_WIDTH] line_data;
+    logic [LINE_ADDR_WIDTH-1:0] addr;
+    logic [`LINE_WIDTH-1:0] data;
 
     modport master (
-        output valid;
-        output line_data;
+        output valid, addr, data
     );
 
     modport slave (
-        input valid;
-        input line_data;
+        input valid, addr, data
     );
 
 endinterface
+
+`endif
