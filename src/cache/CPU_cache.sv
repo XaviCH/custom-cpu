@@ -259,6 +259,10 @@ module CPU_cache
     end
 
     always @(posedge clock) begin
+        if (_sb_operation == PUSH) begin
+            $display("SB push");
+            $display("mode: %h, addr: %h, data: %h", cache_request.mode, cache_request.addr, cache_request.data);
+        end
         if (mem_bus_request.write) begin
             $display("send to MEM");
             $display("addr: %h, data: %h",mem_bus_request.addr, mem_bus_request.data);
