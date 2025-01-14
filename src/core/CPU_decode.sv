@@ -142,14 +142,13 @@ always @(posedge clock) begin
                 execute_if.commit.mem_write <= '0;
                 // execute_if.writeback.mem_to_reg <= '1;
                 execute_if.writeback.reg_write <= '1;
-            execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
-                
+                execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             //STORE
             end else if (decode_if.instr.m_instr.opcode== `ISA_STB_OP || decode_if.instr.m_instr.opcode== `ISA_STW_OP) begin
                 execute_if.commit.mem_write <= '1;
                 execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
-            execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
+                execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             end else if (decode_if.instr.m_instr.opcode== `ISA_LDI_OP) begin
                 execute_if.commit <= '0;
                 execute_if.offset_data <= { {12{1'(decode_if.instr.m_instr[19])}}, decode_if.instr.m_instr[19:0]};

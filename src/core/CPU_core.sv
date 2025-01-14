@@ -88,7 +88,7 @@ module CPU_core
     assign commit_if.cache_write = C_write; 
     assign commit_if.cache_read = C_read;
     assign commit_if.cache_mode = C_mode;
-    assign commit_if.cache_data_in = C_data;    // commit_if.rb_data;
+    assign commit_if.cache_data_in = FWUnit_if.cache_data_bypass ? W_data : C_data; // C_data;    // commit_if.rb_data;
     assign commit_if.cache_addr = C_addr;       // commit_if.alu_result;
 
     assign commit_if.tlb_enable = C_usermode != `SUPERUSER_MODE;
@@ -304,9 +304,9 @@ module CPU_core
         //     1/* ?? */, HDUnit_if.execute_rd, HDUnit_if.ra_use, HDUnit_if.decode_ra, HDUnit_if.rb_use, HDUnit_if.decode_rb);
         // $display("----DECODE----");
         // $display("PC: %h, write: %h", D_tlb_exception.pc, execute_if.commit.mem_write);
-        // $display("----EXECUTE----");
-        // $display("PC: %h, write: %h, addr: %h", E_tlb_exception.pc, E_write, commit_if.alu_result);
-        // $display("op1: %h, op2: %h, ra value: %h, rb value %h", execute.op1_value, execute.op2_value, execute.ra_value, execute.rb_value);
+        $display("----EXECUTE----");
+        $display("PC: %h, write: %h, addr: %h, ra_data=%h, offset=%h", E_tlb_exception.pc, E_write, commit_if.alu_result, execute_if.ra_data, execute_if.offset_data);
+        $display("op1: %h, op2: %h, ra value: %h, rb value %h", execute.op1_value, execute.op2_value, execute.ra_value, execute.rb_value);
         // $display("----FWUNIT----");
         // $display("fw ra id: %h, fw rb id: %h, fw rd_commit: %h, fw wb commit; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0]);
         // $display("alu ra: %h, alu rb: %h, bypass ra commit: %h, bypass ra wb; %hb, bypass rb commit: %h, bypass rb wb; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0], FWUnit_if.rb_execute_bypass[1], FWUnit_if.rb_execute_bypass[0]);

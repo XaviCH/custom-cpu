@@ -89,6 +89,7 @@ always @(posedge clock) begin
         mul_stages[3]<=mul_stages[2];
         mul_stages[2]<=mul_stages[1];
         mul_stages[1]<=mul_stages[0];
+
     end
 end
 endmodule
