@@ -95,8 +95,8 @@ always @(posedge clock) begin
         //PASS VALUES
         // execute_if.next_PC <= decode_if.next_PC;
 
-        execute_if.ra_data <= (decode_if.instr[31:25] == `ISA_LDI_OP) ? 0 : (decode_if.instr[31:25] == `ISA_MOV_OP) ? decode_if.rm1 : bank_reg_if.read_data_a;
-        execute_if.rb_data <= bank_reg_if.read_data_b;
+        execute_if.ra_data <= (decode_if.instr[31:25] == `ISA_LDI_OP) ? 0 : (decode_if.instr[31:25] == `ISA_MOV_OP) ? decode_if.rm1 : ra_value_br;
+        execute_if.rb_data <= rb_value_br;
 
         execute_if.ra_id <= decode_if.instr.r_instr.src1;
         execute_if.rb_id <= decode_if.instr.r_instr.src2;
@@ -142,14 +142,13 @@ always @(posedge clock) begin
                 execute_if.commit.mem_write <= '0;
                 // execute_if.writeback.mem_to_reg <= '1;
                 execute_if.writeback.reg_write <= '1;
-            execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
-                
+                execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             //STORE
             end else if (decode_if.instr.m_instr.opcode== `ISA_STB_OP || decode_if.instr.m_instr.opcode== `ISA_STW_OP) begin
                 execute_if.commit.mem_write <= '1;
                 execute_if.commit.mem_read <= '0;
                 execute_if.writeback.reg_write <= '0;
-            execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
+                execute_if.offset_data <= {{17{decode_if.instr.m_instr.offset[14]}}, decode_if.instr.m_instr.offset};
             end else if (decode_if.instr.m_instr.opcode== `ISA_LDI_OP) begin
                 execute_if.commit <= '0;
                 execute_if.offset_data <= { {12{1'(decode_if.instr.m_instr[19])}}, decode_if.instr.m_instr[19:0]};

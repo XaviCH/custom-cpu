@@ -29,6 +29,8 @@ interface CPU_FWUnit_if ();
     wire [1:0] ra_execute_bypass;
     wire [1:0] rb_execute_bypass;
 
+    wire cache_data_bypass;
+
     wire ra_decode_bypass_mul;
     wire rb_decode_bypass_mul;
     
@@ -60,6 +62,7 @@ interface CPU_FWUnit_if ();
     );
 
     modport master_commit(
+        input cache_data_bypass,
         output rd_commit,
         output writeback_commit,
         output commit_value
@@ -85,6 +88,7 @@ interface CPU_FWUnit_if ();
         input rd_wb_mul,
         input writeback_wb,
         input writeback_wb_mul,
+        output cache_data_bypass, 
         output ra_decode_bypass,
         output rb_decode_bypass,    
         output ra_decode_bypass_mul,

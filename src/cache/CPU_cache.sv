@@ -264,6 +264,10 @@ module CPU_cache
         //     $display("SB push");
         //     $display("mode: %h, addr: %h, data: %h", cache_request.mode, cache_request.addr, cache_request.data);
         // end
+        // if (mem_bus_request.read) begin
+        //     $display("-- MEM REQUEST READ --");
+        //     $display("vaddr: %h, addr: %h, data: %h", cache_request.addr,  mem_bus_request.addr, mem_bus_request.data);
+        // end
         // if (mem_bus_response.valid) begin
         //     $display("-- MEM RESPONSE --");
         //     $display("addr: %h, data: %h",  mem_bus_response.addr, mem_bus_response.data);
