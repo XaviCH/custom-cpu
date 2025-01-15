@@ -40,12 +40,15 @@ interface CPU_HDUnit_if ();
 
     wire cache_miss;
 
+    wire E_stall, E_nop;
+
     modport master_fetch(
         input stall
     );
 
     modport master_decode(
         input stall,
+        input E_stall, E_nop,
         output stall_decode,
         output decode_ra,
         output ra_use,
@@ -85,7 +88,8 @@ interface CPU_HDUnit_if ();
         input execute_wb,
         input mul_wb,
         input cache_miss,
-        output stall
+        output stall,
+        output E_stall, E_nop 
     );
 
 endinterface

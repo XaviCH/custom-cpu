@@ -69,26 +69,18 @@ assign commit_if.rb_data = rb_value;
 
 always @(posedge clock) begin
     if (reset) begin
-        for (i=0; i<`MUL_STAGES; i=i+1) mul_stages[i] <= 0;
+        for (i=0; i<`MUL_STAGES; i=i+1) begin 
+            mul_stages[i] <= 0;
+        end
         //TODO: reset 
     end else begin
-        //PASS VALUES
-        // commit_if.reg_dest <= execute_if.reg_dest;
-        // commit_if.writeback <= execute_if.writeback;
         commit_if.commit <= execute_if.commit;
         
-        //ALU
-        // if (execute_if.execute.alu_op == `ALU_ADD_OP) begin
-        //     commit_if.alu_result <= ra_value + rb_value;
-        // end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
-        //     commit_if.alu_result <= ra_value + rb_value;            
-        // end 
-
+        // MUL
+        for (int s=0; s<`MUL_STAGES-1; ++s) begin
+            mul_stages[s+1] <= mul_stages[s];    
+        end
         bank_reg_if.writeback_mul <= mul_stages[4];
-        mul_stages[4]<=mul_stages[3];
-        mul_stages[3]<=mul_stages[2];
-        mul_stages[2]<=mul_stages[1];
-        mul_stages[1]<=mul_stages[0];
 
     end
 end

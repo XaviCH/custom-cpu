@@ -75,7 +75,8 @@ module CPU_core
     assign decode_if.valid_instr = D_hit;
     assign decode_if.instr = D_instr;
     assign decode_if.next_PC = D_next_pc;
-    assign decode_if.nop = ~D_hit; // ??
+    assign decode_if.nop = HDUnit.mul_raw_hazard || HDUnit.mul_waw_hazard;
+        //~D_hit; // ??
     assign decode_if.tlb_exception = W_tlb_exception;
 
     assign E_tlb_write = decode_if.tlb_write;
@@ -247,11 +248,11 @@ module CPU_core
             F_pc <= fetch_if.next_pc;
         end else if (~(required_dcache && ~commit_if.cache_hit)) begin // dcache miss behaviour
 
-            if ((fetch_if.cache_hit || fetch_if.jump) && ~HDUnit_if.stall /* <-- q es esto */) begin
+            if ((fetch_if.cache_hit || fetch_if.jump) && ~HDUnit.F_stall /* <-- q es esto */) begin
                 F_pc <= fetch_if.next_pc;
             end
 
-            if (~HDUnit_if.stall && ~HDUnit_if.stall_decode) begin
+            if (~HDUnit.D_stall && ~HDUnit_if.stall_decode) begin
                 D_next_pc   <= fetch_if.next_pc;
                 D_instr     <= fetch_if.instr;
                 D_hit       <= (~fetch_if.tlb_enable || fetch_if.tlb_hit) && fetch_if.cache_hit;
@@ -261,7 +262,7 @@ module CPU_core
                 D_tlb_exception.pc      <= fetch_if.pc;
             end
 
-            if (~HDUnit_if.stall) begin
+            if (~HDUnit.E_stall) begin
                 E_tlb_exception         <= D_tlb_exception;
                 E_usermode              <= decode_if.rm4;
             end
@@ -290,32 +291,6 @@ module CPU_core
             W_reg <= C_reg_dst;
             
         end
-    end
-
-    always @(posedge clock) begin
-        // $display("--- CORE ---");
-        // $display("E: bank_write: %h, pc: %h", E_bank_write, E_tlb_exception.pc);
-        // $display("C: addr: %h, data: %h cdata %h, read %h, bank_write: %h, pc %h", C_addr, C_data, commit_if.cache_data_out, C_read, C_bank_write, C_tlb_exception.pc);
-        // $display("W: write: %h, data %h, reg %h, pc: %h", W_write, W_data, W_reg, W_tlb_exception.pc);
-        // $display("----HDUNIT----");
-        // $display("stall: %h", HDUnit_if.stall);
-        // $display("rlh: %h, read: %h, rd: %h=%h, ra: %h=%h, rb: %h=%h", 
-        //     HDUnit.read_load_hazard, HDUnit_if.execute_mem_read, 
-        //     1/* ?? */, HDUnit_if.execute_rd, HDUnit_if.ra_use, HDUnit_if.decode_ra, HDUnit_if.rb_use, HDUnit_if.decode_rb);
-        // $display("----DECODE----");
-        // $display("PC: %h, write: %h", D_tlb_exception.pc, execute_if.commit.mem_write);
-        // $display("----EXECUTE----");
-        // $display("PC: %h, write: %h, addr: %h, ra_data=%h, offset=%h", E_tlb_exception.pc, E_write, commit_if.alu_result, execute_if.ra_data, execute_if.offset_data);
-        // $display("op1: %h, op2: %h, ra value: %h, rb value %h", execute.op1_value, execute.op2_value, execute.ra_value, execute.rb_value);
-        // $display("----WRITEBACK----");
-        // $display("PC: %h, data=%d, reg=%d", W_tlb_exception.pc, W_data, W_reg);
-        
-        // $display("----FWUNIT----");
-        // $display("fw ra id: %h, fw rb id: %h, fw rd_commit: %h, fw wb commit; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0]);
-        // $display("alu ra: %h, alu rb: %h, bypass ra commit: %h, bypass ra wb; %hb, bypass rb commit: %h, bypass rb wb; %h", FWUnit_if.ra_execute_id, FWUnit_if.rb_execute_id, FWUnit_if.ra_execute_bypass[1], FWUnit_if.ra_execute_bypass[0], FWUnit_if.rb_execute_bypass[1], FWUnit_if.rb_execute_bypass[0]);
-        // $display("commit id: %h, commit write enable; %h, commit: value: %h", FWUnit_if.rd_commit, FWUnit_if.writeback_commit, FWUnit_if.commit_value);
-        // $display("wb id: %h, wb write enable; %h, wb: value: %h", FWUnit_if.rd_wb, FWUnit_if.writeback_wb, FWUnit_if.wb_value);
-
     end
 
 endmodule

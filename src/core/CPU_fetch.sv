@@ -75,13 +75,4 @@ module CPU_fetch #(
         end
     end
 
-    // DEBUG data
-    always @(posedge clock) begin
-        //if (fetch_response.cache_hit) begin
-            //$display("--- FETCH ---");
-            //$display("PC: %h, c_hit: %h, instr: %h, jump: %h, next_pc: %h", fetch_request.pc, fetch_response.cache_hit, fetch_response.instr, fetch_request.jump, fetch_response.next_pc);
-        //end
-        // $display("b_available: %h, b_req_read: %h, b_res_valid: %h", mem_bus_available, mem_bus_request.read, mem_bus_response.valid);
-    end
-
 endmodule

@@ -64,25 +64,4 @@ module CPU_commit #(
     assign commit_response.cache_data_out = cache_response.data;
     assign commit_response.cache_hit = cache_response.hit;
 
-    always @(posedge clock) begin
-        if (commit_request.cache_read ) begin
-            $display("--- COMMIT READ ---");
-            $display("ADDR: %h, c_hit: %h, data_out: %h", commit_request.cache_addr, commit_response.cache_hit, commit_response.cache_data_out);
-            $display("b_available: %h, b_req_read: %h, b_res_valid: %h", mem_bus_available, mem_bus_request.read, mem_bus_response.valid);
-        end
-        // if (commit_request.cache_write ) begin
-        //     $display("--- COMMIT  WRITE---");
-        //     $display("ADDR: %h, data_in=%h, c_hit: %h, data_out: %h", commit_request.cache_addr, commit_request.cache_data_in, commit_response.cache_hit, commit_response.cache_data_out);
-        //     $display("b_available: %h, b_req_read: %h, b_res_valid: %h", mem_bus_available, mem_bus_request.read, mem_bus_response.valid);
-        // end
-        // if (mem_bus_request.read) begin
-        //     $display("-- MEM REQUEST READ --");
-        //     $display("vaddr: %h, addr: %h, data: %h", cache_request.addr,  mem_bus_request.addr, mem_bus_request.data);
-        // end
-        // if (mem_bus_response.valid) begin
-        //     $display("-- MEM RESPONSE --");
-        //     $display("addr: %h, data: %h",  mem_bus_response.addr, mem_bus_response.data);
-        // end
-    end
-
 endmodule

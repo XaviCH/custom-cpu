@@ -91,9 +91,8 @@ always @(posedge clock) begin
         execute_if.commit <= '0;
         execute_if.writeback.reg_write <= '0;
         offload <= 0;
-    end else if (~HDUnit_if.stall) begin
+    end else if (~HDUnit_if.E_stall) begin
         //PASS VALUES
-        // execute_if.next_PC <= decode_if.next_PC;
 
         execute_if.ra_data <= (decode_if.instr[31:25] == `ISA_LDI_OP) ? 0 : (decode_if.instr[31:25] == `ISA_MOV_OP) ? decode_if.rm1 : ra_value_br;
         execute_if.rb_data <= rb_value_br;
@@ -104,9 +103,10 @@ always @(posedge clock) begin
         // execute_if.rm4 <= decode_if.rm4;
 
         execute_if.reg_dest <= decode_if.instr.r_instr.dst;
-        if (decode_if.nop || ~decode_if.valid_instr) begin
+        if (HDUnit_if.E_nop || decode_if.nop || ~decode_if.valid_instr) begin
             execute_if.commit <= '0;
             execute_if.writeback <= '0;
+            execute_if.execute.alu_op <= `ALU_ADD_OP;
         end else if (decode_if.tlb_exception.raise) begin
             // fetch_if.jump_PC <= `EXCEPTION_ADDR;
             // fetch_if.jump <= 1;

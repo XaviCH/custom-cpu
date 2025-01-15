@@ -1,4 +1,5 @@
 `include "CPU_define.vh"
+`include "forward_unit/CPU_FWUnit_if.sv"
 
 module CPU_bank_reg
 (
@@ -23,13 +24,6 @@ always @(posedge clock) begin
     if (reset) begin 
         for (i=0; i<`NUM_REGS; i=i+1) reg_file[i] <= 0;
     end else begin
-        $display("--- BANK REG ---");
-        // $display("reg 0: %h", reg_file[0]);
-        // $display("reg 1: %h", reg_file[1]);
-        $display("reg 2: %d", reg_file[2]);
-        // $display("reg 3: %h", reg_file[3]);
-        // $display("reg 4: %d", reg_file[4]);
-        // $display("reg 7: %h", reg_file[7]);
             
         if (bank_reg_if.writeback.write_enable) reg_file[bank_reg_if.writeback.write_reg] <= bank_reg_if.writeback.write_data;
         if (bank_reg_if.writeback_mul.write_enable_mul) reg_file[bank_reg_if.writeback_mul.write_reg_mul] <= bank_reg_if.writeback_mul.write_data_mul;

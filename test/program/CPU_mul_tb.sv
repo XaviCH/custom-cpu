@@ -4,34 +4,21 @@
 `include "test/CPU_define.svh"
 `include "test/program/CPU_instr.sv"
 
-module CPU_buffer_sum_tb ();
-
-    localparam int A = 'h1800;
-    localparam int iterations = 128;
+module CPU_mul_tb ();
 
     localparam int NUM_CODES = 1;
     localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4}; // 0x1000 > 4 0x100
     localparam int CODE_START_INSTR[NUM_CODES] = {0};
-    localparam int TOTAL_INSTR = 16;
+    localparam int TOTAL_INSTR = 8;
     localparam [`INSTR_WIDTH-1:0] CODE_INSTR_DATAS[TOTAL_INSTR] = {
-        I_LDI(0, A[19:0]), // a
+        I_LDI(0, 5), // a
         I_LDI(1, 4), // +4
         I_LDI(2, 0), // i
         I_LDI(3, 1), // +1
 
-        I_LDI(4, 0), // count
-        I_LDI(5, iterations[19:0]), // size
-        I_LDI(6, 0), // ZERO
-        I_LDW(7, 0, 0), // *a   #0x1c
-
-        I_ADD(0, 0, 1), // a + 4
-        I_ADD(2, 2, 3), // i + 1
-        I_ADD(4, 4, 7), // count += *a
-        I_BEQ(2, 5, 1), // branch i == size
-
-        I_JUMP(6, `BOOT_ADDR+'h1c), // jump to bucle
+        I_MUL(4, 0, 1), // 5x4
+        I_ADD(4, 4, 1), // 20 + 2
         I_STOP(),
-        0,
         0
     };
 
@@ -79,9 +66,6 @@ module CPU_buffer_sum_tb ();
 
     initial begin
         reset = 1;
-        for(int i=0; i<iterations; ++i) begin
-            memory_core.lines[(A >> 4) + i/4][`WORD_WIDTH*(i%4) +: `WORD_WIDTH] = i;
-        end
         #20 // let reset a full cicle
         reset = 0;
     end
@@ -92,7 +76,8 @@ module CPU_buffer_sum_tb ();
         if (reset) begin
             $display("START");
         end else if (offload) begin
-            `ASSERT_EQUAL(core.bank_reg.reg_file[4], iterations*(iterations-1)/2);
+            #40
+            `ASSERT_EQUAL(core.bank_reg.reg_file[4], 24);
             $display("Performance data: total_clocks=%d.", clock_perf_data);
             `SUCCESS;
         end
@@ -102,9 +87,9 @@ module CPU_buffer_sum_tb ();
         if (~reset) begin 
             clock_perf_data <= clock_perf_data + 1;
         end
-        // if (clock_perf_data == 100) begin 
-        //     $finish();
-        // end
+        if (clock_perf_data == 60) begin 
+            $finish();
+        end
     end
 
 endmodule
