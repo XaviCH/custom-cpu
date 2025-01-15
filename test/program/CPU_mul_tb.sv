@@ -76,10 +76,10 @@ module CPU_mul_tb ();
         if (reset) begin
             $display("START");
         end else if (offload) begin
-            #100
-            $display("End Of The Program: Clocks %d.", clock_perf_data);
-            $display("Register data: %d", core.bank_reg.reg_file[4]);
-            $finish();
+            #40
+            `ASSERT_EQUAL(core.bank_reg.reg_file[4], 24);
+            $display("Performance data: total_clocks=%d.", clock_perf_data);
+            `SUCCESS;
         end
     end
 

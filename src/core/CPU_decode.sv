@@ -93,7 +93,6 @@ always @(posedge clock) begin
         offload <= 0;
     end else if (~HDUnit_if.E_stall) begin
         //PASS VALUES
-        // execute_if.next_PC <= decode_if.next_PC;
 
         execute_if.ra_data <= (decode_if.instr[31:25] == `ISA_LDI_OP) ? 0 : (decode_if.instr[31:25] == `ISA_MOV_OP) ? decode_if.rm1 : ra_value_br;
         execute_if.rb_data <= rb_value_br;

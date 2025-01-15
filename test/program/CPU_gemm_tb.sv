@@ -4,50 +4,66 @@
 `include "test/CPU_define.svh"
 `include "test/program/CPU_instr.sv"
 
-module CPU_mem_copy_tb ();
+module CPU_gemm_tb ();
 
-    localparam int A = 'h1800;
-    localparam int B = 'h1900;
-    localparam int iterations = 128;
+    localparam int A = 'h10000;
+    localparam int B = 'h20000;
+    localparam int C = 'h30000;
+    localparam int M = 128;
 
     localparam int NUM_CODES = 1;
     localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4}; // 0x1000 > 4 0x100
     localparam int CODE_START_INSTR[NUM_CODES] = {0};
-    localparam int TOTAL_INSTR = 28;
+    localparam int TOTAL_INSTR = 40;
     localparam [`INSTR_WIDTH-1:0] CODE_INSTR_DATAS[TOTAL_INSTR] = {
-        I_LDI(0, A[19:0]), // a
-        I_LDI(1, B[19:0]), // b
-        I_LDI(2, 0), // i
-        I_LDI(3, 5), // 5
-
-        I_LDI(4, 4), // 4
-        I_LDI(5, 1), // 1
-        I_LDI(6, iterations[19:0]), // size
-        I_LDI(7, 0), // ZERO
-
-        I_STW(3, 0, 0), // *a = 5 # 0x1c
-        I_ADD(2, 2, 5), // i+1
-        I_ADD(0, 0, 4), // a+4
-        I_BEQ(2, 6, 1), // branch i == size
-
-        I_JUMP(7, `BOOT_ADDR+'h20), // jump to bucle
-        I_LDI(0, A[19:0]), // a = a
-        I_LDI(2, 0), // i = 0
-        I_LDW(3, 0, 0), // #0x3c
-
-        I_STW(3, 1, 0), // *b = *a
-        I_ADD(2, 2, 5), // i+1
-        I_ADD(0, 0, 4), // a+4
-        I_ADD(1, 1, 4), // b+4
+        I_LDI(0, A[19:0]), // const a
+        I_LDI(1, B[19:0]), // const b
+        I_LDI(2, C[19:0]), // const c
+        I_LDI(3, 4),   // const 4
         
-        I_BEQ(2, 6, 1), // branch i == size
-        I_JUMP(7, `BOOT_ADDR+'h3c), // jump to bucle
-        I_STW(7, 7, 0),
-        I_STW(7, 7, 16),
-        
-        I_STW(7, 7, 32),
-        I_STW(7, 7, 48),
+        I_LDI(4, {(M*4)}[19:0]), // const M*4
+        I_LDI(5, {M*M*4}[19:0]), // const M*M*4
+        I_LDI(6, 0),   // const ZERO
+        I_LDI(7, 0), // i # + M*4
+
+        I_LDI(8, 0), // j # + 4 0x20
+        I_LDI(9, 0), // temp of c
+        I_LDI(10, 0), // k_rows # + M*4
+        I_LDI(11, 0), // k_cols # + 4
+
+        I_ADD(12, 0, 7), // # 0x30
+        I_ADD(12, 12, 11), // &a[i][k]
+        I_LDW(12, 12, 0), // *a
+        I_ADD(13, 1, 10),
+
+        I_ADD(13, 13, 8), // &b[k][j]
+        I_LDW(13, 13, 0), // *j
+        I_MUL(12, 12, 13), //
+        I_ADD(9, 9, 12), // temp = temp + a[][]*b[][]
+
+        I_ADD(10, 10, 4), 
+        I_ADD(11, 11, 3),
+        I_BEQ(11, 4, 1), // branch j == M*4
+        I_JUMP(6, `BOOT_ADDR+'h30), // jump to j
+
+        I_ADD(12, 2, 7),
+        I_ADD(12, 12, 8), // &c[i][j]
+        I_STW(9, 12, 0),
+        I_ADD(8, 8, 3),
+
+        I_BEQ(8, 4, 1), // branch j == M*4
+        I_JUMP(6, `BOOT_ADDR+'h24), // jump to j
+        I_ADD(7, 7, 4),
+        I_BEQ(7, 5, 1), // branch i == M*M*4
+
+        I_JUMP(6, `BOOT_ADDR+'h20), // jump to i
+        I_STW(0, 6, 0),
+        I_STW(0, 6, 16),
+        I_STW(0, 6, 32),
+
+        I_STW(0, 6, 48),
         I_STOP(),
+        0,
         0
     };
 
@@ -95,9 +111,12 @@ module CPU_mem_copy_tb ();
 
     initial begin
         reset = 1;
-        // for(int i=0; i<iterations; ++i) begin
-        //     memory_core.lines[(A >> 4) + i/4][`WORD_WIDTH*(i%4) +: `WORD_WIDTH] = i;
-        // end
+        for(int i=0; i<M*M; ++i) begin
+            memory_core.lines[(A >> 4) + i/4][`WORD_WIDTH*(i%4) +: `WORD_WIDTH] = 2;
+        end
+        for(int i=0; i<M*M; ++i) begin
+            memory_core.lines[(B >> 4) + i/4][`WORD_WIDTH*(i%4) +: `WORD_WIDTH] = 2;
+        end
         #20 // let reset a full cicle
         reset = 0;
     end
@@ -109,9 +128,9 @@ module CPU_mem_copy_tb ();
             $display("START");
         end else if (offload) begin
             #200
-            for (int i=0; i < iterations; ++i) begin
+            for (int i=0; i < M; ++i) begin
                 int mod = i % 4;
-                `ASSERT_EQUAL(memory_core.lines[(B >> 4) + i/4][`WORD_WIDTH*mod +: `WORD_WIDTH], 5);
+                `ASSERT_EQUAL(memory_core.lines[(C >> 4) + i/4][`WORD_WIDTH*mod +: `WORD_WIDTH], M*4);
             end
             $display("Performance data: total_clocks=%d.", clock_perf_data);
             `SUCCESS

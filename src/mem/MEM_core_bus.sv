@@ -75,9 +75,6 @@ module MEM_core_bus #
             _bus_response_queue[0].data     <= core_response.data;
 
         end
-        //$display("--- MEM_BUS ---");
-        //$display("bus_req.read %h, mem_res.valid %h, bus_res.valid: %h", _bus_request_queue[0].read, core_response.valid, bus_response.valid);
-        //$display("mem_res.data: %h, mem_res.addr: %h, mem_res.valid %h", core_response.data, core_response.addr, core_response.valid);
     end
 
 endmodule

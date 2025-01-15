@@ -7,7 +7,7 @@
 module CPU_buffer_sum_tb ();
 
     localparam int A = 'h1800;
-    localparam int iterations = 16;
+    localparam int iterations = 128;
 
     localparam int NUM_CODES = 1;
     localparam int CODE_ADDRS[NUM_CODES] = {`BOOT_ADDR >> 4}; // 0x1000 > 4 0x100
@@ -92,10 +92,9 @@ module CPU_buffer_sum_tb ();
         if (reset) begin
             $display("START");
         end else if (offload) begin
-            #900
-            $display("End Of The Program: Clocks %d.", clock_perf_data);
-            $display("Register data: %d", core.bank_reg.reg_file[4]);
-            $finish();
+            `ASSERT_EQUAL(core.bank_reg.reg_file[4], iterations*(iterations-1)/2);
+            $display("Performance data: total_clocks=%d.", clock_perf_data);
+            `SUCCESS;
         end
     end
 

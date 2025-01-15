@@ -74,18 +74,9 @@ always @(posedge clock) begin
         end
         //TODO: reset 
     end else begin
-        //PASS VALUES
-        // commit_if.reg_dest <= execute_if.reg_dest;
-        // commit_if.writeback <= execute_if.writeback;
         commit_if.commit <= execute_if.commit;
         
-        //ALU
-        // if (execute_if.execute.alu_op == `ALU_ADD_OP) begin
-        //     commit_if.alu_result <= ra_value + rb_value;
-        // end else if (execute_if.execute.alu_op == `ALU_SUB_OP) begin
-        //     commit_if.alu_result <= ra_value + rb_value;            
-        // end 
-
+        // MUL
         for (int s=0; s<`MUL_STAGES-1; ++s) begin
             mul_stages[s+1] <= mul_stages[s];    
         end
