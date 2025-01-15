@@ -40,7 +40,18 @@ assign mul_waw_hazard_4 = HDUnit_if.rd_use && HDUnit_if.mul_wb[4].write_back && 
 
 assign mul_waw_hazard = mul_waw_hazard_0 || mul_waw_hazard_1 || mul_waw_hazard_2 || mul_waw_hazard_3 || mul_waw_hazard_4;
 
-assign HDUnit_if.stall = read_load_hazard || br_hazard_alu || jump_hazard_alu || br_hazard_load || jump_hazard_load || mul_raw_hazard || mul_waw_hazard || HDUnit_if.cache_miss;
+assign HDUnit_if.stall = read_load_hazard || br_hazard_alu || jump_hazard_alu || br_hazard_load || jump_hazard_load || HDUnit_if.cache_miss;
+
+logic F_stall, D_stall, E_stall;
+logic E_nop;
+
+assign F_stall = HDUnit_if.stall | mul_waw_hazard | mul_raw_hazard;
+assign D_stall = HDUnit_if.stall | mul_waw_hazard | mul_raw_hazard;
+assign E_nop = mul_waw_hazard | mul_raw_hazard;
+assign E_stall = HDUnit_if.stall;
+
+assign HDUnit_if.E_stall = E_stall;
+assign HDUnit_if.E_nop = E_nop;
 
 endmodule
 
